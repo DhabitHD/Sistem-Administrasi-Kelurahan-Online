@@ -13,30 +13,35 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            
+            // Kredensial & Identitas Utama
+            $table->string('nik', 16)->unique();
+            $table->string('no_kk', 16)->nullable(); // Opsional
+            $table->string('nama_lengkap');
             $table->string('password');
+            
+            // Data Demografi
+            $table->string('tempat_lahir');
+            $table->date('tanggal_lahir');
+            $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan']);
+            $table->string('agama');
+            $table->string('pekerjaan');
+            
+            // Informasi Kontak & Alamat
+            $table->text('alamat_lengkap');
+            $table->string('nomor_rumah')->nullable(); // Opsional
+            $table->string('nomor_hp', 20);
+            $table->string('email')->unique()->nullable(); // Opsional
+            
+            // Berkas & Sistem
+            $table->string('foto_ktp'); 
+            $table->enum('role', ['admin', 'warga', 'petugas'])->default('warga');
+            $table->enum('status_akun', ['PENDING', 'VERIFIED', 'REJECTED'])->default('PENDING');
+            
             $table->rememberToken();
             $table->timestamps();
         });
-
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
-
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
-        });
     }
-
     /**
      * Reverse the migrations.
      */

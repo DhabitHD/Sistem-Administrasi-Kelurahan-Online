@@ -51,4 +51,50 @@ class AuthController extends Controller
             'data' => $user
         ], 201);
     }
+
+    public function login(Request $request)
+    {
+        // 1. Validasi input
+        $request->validate([
+            'nik' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        // 2. Cari user berdasarkan NIK
+        $user = User::where('nik', $request->nik)->first();
+
+        // 3. Cek apakah user ada dan password cocok
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'NIK atau Password salah.'
+            ], 401);
+        }
+
+        // 4. Aturan PRD: Pastikan status akun sudah VERIFIED
+        if ($user->status_akun !== 'VERIFIED') {
+            return response()->json([
+                'message' => 'Akun Anda belum diverifikasi oleh Admin atau pendaftaran ditolak.'
+            ], 403);
+        }
+
+        // 5. Buat token akses Sanctum
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login berhasil',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'data' => $user
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        // Hapus token yang sedang digunakan untuk request ini
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Logout berhasil'
+        ]);
+    }
 }
