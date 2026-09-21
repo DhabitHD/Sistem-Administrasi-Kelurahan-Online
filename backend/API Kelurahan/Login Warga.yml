@@ -1,0 +1,24 @@
+info:
+  name: Login Warga
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://127.0.0.1:8000/api/login
+  body:
+    type: json
+    data: |-
+      {
+          "nik": "0000000000000001",
+          "password": "adminbetet123"
+      }
+  auth:
+    type: bearer
+    token: 4|15OQuBOYgjq9pYQtWcaMrsrU1Vy5OwPqK0VQ49xa0e955813
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

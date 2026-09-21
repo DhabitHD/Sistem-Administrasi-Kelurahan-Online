@@ -1,0 +1,96 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { adminComplaints, adminLetters, fetchStats } from '../../services/store.js';
+import AppIcon from '../../components/common/AppIcon.jsx';
+
+export default function AdminDashboard() {
+  const [stats, setStats] = useState(null);
+  const [complaints, setComplaints] = useState([]);
+  const [letters, setLetters] = useState([]);
+
+  useEffect(() => {
+    Promise.all([fetchStats(), adminComplaints(), adminLetters()])
+      .then(([s, c, l]) => {
+        setStats(s);
+        setComplaints(c);
+        setLetters(l);
+      })
+      .catch(() => {});
+  }, []);
+
+  const warga = stats?.warga_total || 0;
+  const pending = stats?.warga_pending || 0;
+  const openComplaints = stats?.pengaduan_aktif || 0;
+  const openLetters = stats?.surat_aktif || 0;
+
+  const statCards = [
+    ['Warga Terdaftar', warga, 'people', '/admin/warga', 'stat-grad-brand'],
+    ['Menunggu Verifikasi', pending, 'user-check', '/admin/warga', 'stat-grad-blue'],
+    ['Pengaduan Terbuka', openComplaints, 'chat-left-text', '/admin/pengaduan', 'stat-grad-sky'],
+    ['Surat Terbuka', openLetters, 'file-earmark-text', '/admin/surat', 'stat-grad-indigo'],
+  ];
+  const total = complaints.length + letters.length;
+
+  return (
+    <div className="container-fluid">
+      <div className="mb-4">
+        <span className="eyebrow text-brand">PORTAL ADMIN</span>
+        <h1 className="h2 mt-2">Dashboard Admin</h1>
+        <p className="lead text-muted">
+          Ringkasan layanan Kelurahan Betet. {total} total pengaduan &amp; surat.
+        </p>
+      </div>
+
+      <div className="row g-4 mb-4">
+        {statCards.map(([label, value, icon, to, grad]) => (
+          <div className="col-sm-6 col-lg-3" key={label}>
+            <Link to={to} className={`stat-card ${grad} p-4 d-block text-decoration-none h-100`}>
+              <span className="stat-icon"><AppIcon name={icon} size={20} /></span>
+              <div className="stat-card__val mb-0">{value}</div>
+              <span className="stat-card__label">{label}</span>
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      {pending > 0 && (
+        <div className="alert alert-warning d-flex align-items-center gap-2">
+          <AppIcon name="alert-circle" size={18} />
+          <span className="flex-grow-1">Ada <strong>{pending} pendaftar</strong> menunggu verifikasi.</span>
+          <Link to="/admin/warga" className="btn btn-sm btn-brand">Verifikasi Sekarang</Link>
+        </div>
+      )}
+
+      <div className="row g-4">
+        <div className="col-lg-6">
+          <div className="dashboard-card p-4">
+            <h2 className="h5 mb-3"><AppIcon name="chat-left-text" className="text-brand me-2" />Pengaduan Terbaru</h2>
+            {complaints.length === 0 ? <p className="text-muted mb-0">Belum ada pengaduan.</p> : complaints.slice(0, 5).map((c) => (
+              <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light" key={c.id}>
+                <div>
+                  <strong>{c.title}</strong>
+                  <small className="d-block text-muted">{c.id_code} · {c.owner}</small>
+                </div>
+                <small className="text-nowrap">{new Date(c.created_at).toLocaleDateString('id-ID')}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="col-lg-6">
+          <div className="dashboard-card p-4">
+            <h2 className="h5 mb-3"><AppIcon name="file-earmark-text" className="text-brand me-2" />Pengajuan Surat Terbaru</h2>
+            {letters.length === 0 ? <p className="text-muted mb-0">Belum ada pengajuan surat.</p> : letters.slice(0, 5).map((l) => (
+              <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light" key={l.id}>
+                <div>
+                  <strong>{l.jenis || l.title}</strong>
+                  <small className="d-block text-muted">{l.id_code} · {l.owner}</small>
+                </div>
+                <small className="text-nowrap">{new Date(l.created_at).toLocaleDateString('id-ID')}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

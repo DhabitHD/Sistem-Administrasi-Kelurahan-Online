@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Website Resmi Kelurahan Betet, Kota Kediri — Portal Informasi dan Pelayanan Publik" />
+  <meta name="theme-color" content="#2563EB" />
+
+  <!-- Favicon / browser tab -->
+  <link rel="icon" type="image/png" href="/assets/placeholders/logo-kelurahan.png" />
+  <link rel="apple-touch-icon" href="/assets/placeholders/logo-kelurahan.png" />
+
+  <!-- Social sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Kelurahan Betet — Kota Kediri" />
+  <meta property="og:title" content="Kelurahan Betet — Kota Kediri" />
+  <meta property="og:description" content="Portal informasi dan pelayanan publik Kelurahan Betet, Kecamatan Pesantren, Kota Kediri." />
+  <meta property="og:image" content="/assets/placeholders/logo-kelurahan.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Kelurahan Betet — Kota Kediri" />
+  <meta name="twitter:description" content="Portal informasi dan pelayanan publik Kelurahan Betet, Kecamatan Pesantren, Kota Kediri." />
+  <meta name="twitter:image" content="/assets/placeholders/logo-kelurahan.png" />
+
+  <!-- Google Fonts – Sora (body) + Bricolage Grotesque (heading) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500;12..96,75..100,600;12..96,75..100,700;12..96,75..100,800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <title>Kelurahan Betet — Kota Kediri</title>
+  <style>
+    .preloader {
+      position: fixed; inset: 0; z-index: 9999;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, #1E40AF, #2563EB);
+      transition: opacity .5s ease, visibility .5s ease;
+    }
+    .preloader.hidden { opacity: 0; visibility: hidden; }
+    .pl-logos {
+      display: flex; gap: 14px;
+      justify-content: center;
+    }
+    .pl-logo {
+      width: 92px; height: 92px;
+      display: grid; place-items: center;
+      background: #fff; border-radius: 20px;
+      box-shadow: 0 12px 32px rgba(11, 30, 61, .28);
+      animation: plPulse 1.6s ease-in-out infinite;
+    }
+    .pl-logo img { width: 56px; height: 56px; object-fit: contain; }
+    .pl-name {
+      margin-top: 1.1rem; text-align: center;
+      color: #fff; font-family: 'Bricolage Grotesque', 'Sora', sans-serif;
+      font-weight: 800; font-size: 1.35rem; letter-spacing: .02em;
+      animation: plFloat 2.4s ease-in-out infinite;
+    }
+    .pl-bar {
+      width: 160px; height: 5px; margin: 1.4rem auto 0;
+      border-radius: 999px; overflow: hidden;
+      background: rgba(255, 255, 255, .22);
+    }
+    .pl-bar span {
+      display: block; width: 40%; height: 100%;
+      border-radius: 999px; background: #fff;
+      animation: plSlide 1.2s ease-in-out infinite;
+    }
+    @keyframes plPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.07); opacity: .92; }
+    }
+    @keyframes plFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes plSlide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pl-logo, .pl-name, .pl-bar span { animation: none; }
+      .pl-name { opacity: .9; }
+      .pl-bar span { width: 50%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preloader" id="preloader">
+    <div>
+      <div class="pl-logos">
+        <div class="pl-logo"><img src="/assets/placeholders/logo-unesa.png" alt="Memuat" /></div>
+        <div class="pl-logo"><img src="/assets/placeholders/logo-kelurahan.png" alt="Memuat" /></div>
+      </div>
+      <div class="pl-name">Kelurahan Betet</div>
+      <div class="pl-bar"><span></span></div>
+    </div>
+  </div>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+  <script>
+    var plStart = Date.now();
+    function hidePreloader() {
+      var p = document.getElementById('preloader');
+      if (p) p.classList.add('hidden');
+    }
+    window.addEventListener('load', function () {
+      var wait = Math.max(0, 3000 - (Date.now() - plStart));
+      setTimeout(hidePreloader, wait);
+    });
+  </script>
+</body>
+</html>

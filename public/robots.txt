@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Ganti setelah domain resmi diputuskan
+Sitemap: https://kelurahanbetet.example.org/sitemap.xml
