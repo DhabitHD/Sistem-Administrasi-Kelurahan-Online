@@ -274,8 +274,19 @@ class AdminController extends Controller
 
     public function lettersAll(): JsonResponse
     {
-        $items = Letter::with('user:id,name')->orderByDesc('created_at')->get()
-            ->map(fn ($l) => ['id' => $l->id, 'id_code' => $l->id_code, 'jenis' => $l->jenis, 'description' => $l->description, 'catatan' => $l->catatan, 'status' => $l->status, 'created_at' => $l->created_at, 'owner' => $l->user->name ?? '-']);
+        $items = Letter::with('user:id,name,nik,kk,wa,alamat,email,ktp')->orderByDesc('created_at')->get()
+            ->map(fn ($l) => [
+                'id' => $l->id, 'id_code' => $l->id_code, 'jenis' => $l->jenis, 'description' => $l->description,
+                'catatan' => $l->catatan, 'attachments' => $l->attachments,
+                'status' => $l->status, 'created_at' => $l->created_at,
+                'owner' => $l->user->name ?? '-',
+                'nik' => $l->user->nik ?? null,
+                'kk' => $l->user->kk ?? null,
+                'wa' => $l->user->wa ?? null,
+                'alamat' => $l->user->alamat ?? null,
+                'email' => $l->user->email ?? null,
+                'ktp' => $l->user->ktp ?? null,
+            ]);
         return response()->json(['data' => $items]);
     }
 

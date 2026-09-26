@@ -87,7 +87,10 @@ class AuthController extends Controller
         $ext = $m[1] === 'jpeg' ? 'jpg' : $m[1];
         $name = 'anon_'.time().'_'.uniqid().'.'.$ext;
         Storage::disk('public')->put("uploads/{$name}", $bin);
-        return url('/storage/uploads/'.$name);
+        // Relative path, not url(). The API and the SPA are served from different
+        // origins in dev, so an absolute URL is a cross-origin request that the CSP
+        // img-src directive blocks, and it is not portable across environments.
+        return '/storage/uploads/'.$name;
     }
 
     public function logout(Request $request): JsonResponse

@@ -126,16 +126,37 @@ class WargaController extends Controller
         return response()->json(null, 204);
     }
 
-    public function tracking(Request $request, string $code): JsonResponse
+    /* Public tracking returns status only. This route is intentionally outside the
+       auth:sanctum group, and Complaint/Letter hide nothing but Complaint::token,
+       so serialising the model exposed the complainant's description, RT/RW,
+       gmaps_link (their address), evidence photos, the closure report and user_id.
+       id_code is a global sequential counter (see nextCode), so without this an
+       anonymous caller could enumerate and read every complaint and letter on file.
+
+       Residents who want the full record already have it behind auth at
+       GET /complaints (portal warga) — no need to widen this endpoint. */
+    private const TRACKING_PUBLIC_FIELDS = [
+        'id_code', 'title', 'jenis', 'category', 'status', 'created_at', 'updated_at',
+    ];
+
+    public function tracking(string $code): JsonResponse
     {
         $t = strtoupper($code);
         $complaint = Complaint::where('id_code', $t)->first();
         if ($complaint) {
-            return response()->json(['data' => ['kind' => 'Pengaduan', 'status' => $complaint->status, 'item' => $complaint]]);
+            return response()->json(['data' => [
+                'kind' => 'Pengaduan',
+                'status' => $complaint->status,
+                'item' => $complaint->only(self::TRACKING_PUBLIC_FIELDS),
+            ]]);
         }
         $letter = Letter::where('id_code', $t)->first();
         if ($letter) {
-            return response()->json(['data' => ['kind' => 'Surat', 'status' => $letter->status, 'item' => $letter]]);
+            return response()->json(['data' => [
+                'kind' => 'Surat',
+                'status' => $letter->status,
+                'item' => $letter->only(self::TRACKING_PUBLIC_FIELDS),
+            ]]);
         }
         return response()->json(['message' => 'Kode tidak ditemukan.'], 404);
     }

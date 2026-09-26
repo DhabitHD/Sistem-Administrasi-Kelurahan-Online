@@ -32,7 +32,10 @@ Route::get('cari', [PublicController::class, 'cari']);
 Route::post('visits', [PublicController::class, 'visits']);
 Route::get('hero', [HeroController::class, 'public']);
 Route::get('profil', [ProfilController::class, 'public']);
-Route::get('tracking/{code}', [WargaController::class, 'tracking']);
+/* Public (no auth) — status lookup only. Throttled because id_code is a
+   sequential counter and the response is unauthenticated by design. */
+Route::get('tracking/{code}', [WargaController::class, 'tracking'])->middleware('throttle:30,1');
+
 Route::get('tugas/{token}', [TugasController::class, 'show']);
 Route::post('tugas/{token}/laporan', [TugasController::class, 'store']);
 

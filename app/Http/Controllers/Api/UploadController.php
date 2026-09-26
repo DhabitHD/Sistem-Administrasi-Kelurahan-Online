@@ -22,8 +22,11 @@ class UploadController extends Controller
 
         Storage::disk('public')->putFileAs('uploads', $file, $name);
 
-        $url = url('/storage/uploads/'.$name);
+        /* Relative path, not url(). The API and the SPA are served from different
+           origins in dev, so an absolute URL is a cross-origin request that the CSP
+           img-src directive blocks, and it is not portable across environments. */
+        $path = '/storage/uploads/'.$name;
 
-        return response()->json(['data' => ['path' => $url, 'name' => $name]], 201);
+        return response()->json(['data' => ['path' => $path, 'name' => $name]], 201);
     }
 }
