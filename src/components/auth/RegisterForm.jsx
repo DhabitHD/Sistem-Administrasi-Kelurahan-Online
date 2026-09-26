@@ -53,15 +53,17 @@ export default function RegisterForm() {
   const nav = useNavigate();
   const { register } = useAuth();
 
-  const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+  const KTP_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const onKtp = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
+    if (!KTP_TYPES.includes(file.type)) {
       update('ktp', null);
       e.target.value = '';
-      setError('File KTP harus berupa gambar.');
+      setError('File KTP harus berformat JPG, PNG, atau WebP.');
       return;
     }
     if (file.size > 500 * 1024) {
@@ -162,7 +164,7 @@ export default function RegisterForm() {
         <label className="form-label fw-semibold" htmlFor="ktp">
           Foto KTP <span className="text-danger">*</span>
         </label>
-        <input id="ktp" type="file" accept="image/*" className="form-control" onChange={onKtp} />
+        <input id="ktp" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" className="form-control" onChange={onKtp} />
         <small className="text-muted d-block mt-2">Gunakan foto yang jelas. Maksimal 500 KB, disimpan sebagai data pendaftaran.</small>
         {form.ktp && <img src={form.ktp} className="upload-preview mt-3" alt="Preview foto KTP" />}
       </div>

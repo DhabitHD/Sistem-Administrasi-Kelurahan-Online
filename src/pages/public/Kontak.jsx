@@ -1,7 +1,7 @@
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { useProfil } from '../../services/contentStore.js';
 const mapSrc =
-  'https://www.google.com/maps?q=Jl.+Raya+Betet+Bawang+76,+Kediri,+Jawa+Timur&output=embed';
+  'https://www.google.com/maps?q=-7.8506564,112.0434437&hl=id&z=17&output=embed';
 
 export default function Kontak() {
   const c = useProfil();
@@ -55,7 +55,7 @@ export default function Kontak() {
           <div className="d-flex justify-content-between align-items-center gap-3 mt-3 flex-wrap">
             <small className="text-muted">Peta terhubung ke Google Maps berdasarkan alamat kantor yang dipublikasikan.</small>
             <a className="btn btn-outline-brand" target="_blank" rel="noreferrer"
-              href="https://www.google.com/maps/search/?api=1&query=Jl.%20Raya%20Betet%20Bawang%2076%2C%20Kediri">
+              href="https://www.google.com/maps?q=-7.8506564,112.0434437">
               Buka di Google Maps <AppIcon name="box-arrow-up-right" className="ms-1" />
             </a>
           </div>

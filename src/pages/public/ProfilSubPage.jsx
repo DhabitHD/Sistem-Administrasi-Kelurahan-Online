@@ -116,7 +116,7 @@ const statsDimensi = [
 const grandTotal = statsDimensi.map((d) => d.rows.reduce((s, r) => s + r[1] + r[2], 0));
 
 const mapSrc =
-  'https://www.google.com/maps?q=Kelurahan+Betet,+Kecamatan+Pesantren,+Kota+Kediri,+Jawa+Timur&output=embed';
+  'https://www.google.com/maps?q=-7.8506564,112.0434437&hl=id&z=17&output=embed';
 
 const initials = (name) => name.split(' ').filter((w) => /^[A-Z]/.test(w)).slice(0, 2).map((w) => w[0]).join('');
 
@@ -337,7 +337,7 @@ export default function ProfilSubPage() {
                 className="btn btn-sm btn-outline-brand w-100"
                 target="_blank"
                 rel="noreferrer"
-                href="https://www.google.com/maps/search/?api=1&query=Kelurahan%20Betet%2C%20Kecamatan%20Pesantren%2C%20Kota%20Kediri"
+                href="https://www.google.com/maps?q=-7.8506564,112.0434437"
               >
                 Buka di Google Maps <AppIcon name="box-arrow-up-right" className="ms-1" size={14} />
               </a>

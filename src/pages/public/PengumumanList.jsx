@@ -23,32 +23,34 @@ export default function PengumumanList() {
 
       <div className="row">
         <div className="col-lg-9">
-          <div className="mb-4">
-            <div className="input-group">
-              <span className="input-group-text bg-white"><AppIcon name="search" /></span>
-              <input
-                className="form-control"
-                placeholder="Cari pengumuman…"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                aria-label="Cari pengumuman"
-              />
+          <div className="panel-card">
+            <div className="mb-4">
+              <div className="input-group">
+                <span className="input-group-text bg-white"><AppIcon name="search" /></span>
+                <input
+                  className="form-control"
+                  placeholder="Cari pengumuman…"
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  aria-label="Cari pengumuman"
+                />
+              </div>
             </div>
-          </div>
 
-          {items.length === 0 ? (
-            <div className="empty-state">
-              <div className="service-icon mx-auto"><AppIcon name="search" /></div>
-              <h2 className="h5 mt-3">Tidak ada pengumuman</h2>
-              <p className="text-muted mb-0">Tidak ditemukan pengumuman yang cocok.</p>
-            </div>
-          ) : (
-            items.map((item) => (
-              <RevealOnScroll key={item.slug}>
-                <AnnouncementCard item={item} />
-              </RevealOnScroll>
-            ))
-          )}
+            {items.length === 0 ? (
+              <div className="empty-state">
+                <div className="service-icon mx-auto"><AppIcon name="search" /></div>
+                <h2 className="h5 mt-3">Tidak ada pengumuman</h2>
+                <p className="text-muted mb-0">Tidak ditemukan pengumuman yang cocok.</p>
+              </div>
+            ) : (
+              items.map((item) => (
+                <RevealOnScroll key={item.slug}>
+                  <AnnouncementCard item={item} />
+                </RevealOnScroll>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -66,13 +66,16 @@ export default function AdminDashboard() {
           <div className="dashboard-card p-4">
             <h2 className="h5 mb-3"><AppIcon name="chat-left-text" className="text-brand me-2" />Pengaduan Terbaru</h2>
             {complaints.length === 0 ? <p className="text-muted mb-0">Belum ada pengaduan.</p> : complaints.slice(0, 5).map((c) => (
-              <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light" key={c.id}>
-                <div>
-                  <strong>{c.title}</strong>
+              <Link to="/admin/pengaduan" state={{ openId: c.id }} className="dash-row text-decoration-none text-reset" key={c.id}>
+                <div className="min-w-0">
+                  <strong className="d-block text-truncate">{c.title}</strong>
                   <small className="d-block text-muted">{c.id_code} · {c.owner}</small>
                 </div>
-                <small className="text-nowrap">{new Date(c.created_at).toLocaleDateString('id-ID')}</small>
-              </div>
+                <span className="d-flex align-items-center gap-2 text-nowrap">
+                  <small>{new Date(c.created_at).toLocaleDateString('id-ID')}</small>
+                  <AppIcon name="arrow-right" size={15} className="text-brand" />
+                </span>
+              </Link>
             ))}
           </div>
         </div>
@@ -80,13 +83,16 @@ export default function AdminDashboard() {
           <div className="dashboard-card p-4">
             <h2 className="h5 mb-3"><AppIcon name="file-earmark-text" className="text-brand me-2" />Pengajuan Surat Terbaru</h2>
             {letters.length === 0 ? <p className="text-muted mb-0">Belum ada pengajuan surat.</p> : letters.slice(0, 5).map((l) => (
-              <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light" key={l.id}>
-                <div>
-                  <strong>{l.jenis || l.title}</strong>
+              <Link to="/admin/surat" state={{ openId: l.id }} className="dash-row text-decoration-none text-reset" key={l.id}>
+                <div className="min-w-0">
+                  <strong className="d-block text-truncate">{l.jenis || l.title}</strong>
                   <small className="d-block text-muted">{l.id_code} · {l.owner}</small>
                 </div>
-                <small className="text-nowrap">{new Date(l.created_at).toLocaleDateString('id-ID')}</small>
-              </div>
+                <span className="d-flex align-items-center gap-2 text-nowrap">
+                  <small>{new Date(l.created_at).toLocaleDateString('id-ID')}</small>
+                  <AppIcon name="arrow-right" size={15} className="text-brand" />
+                </span>
+              </Link>
             ))}
           </div>
         </div>

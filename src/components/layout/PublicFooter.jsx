@@ -43,11 +43,11 @@ const quickLinks = [
 const externalLinks = [
   ['https://www.kedirikota.go.id/', 'Pemkot Kediri'],
   ['https://www.lapor.go.id/', 'SP4N-LAPOR!'],
-  ['https://112.kedirikota.go.id/', 'Kediri 112'],
+  ['https://lapormbakwali.kedirikota.go.id/', 'Kediri 112'],
 ];
 
 const mapSrc =
-  'https://www.google.com/maps?q=Jl.+Raya+Betet+Bawang+76,+Kediri,+Jawa+Timur&output=embed';
+  'https://www.google.com/maps?q=-7.8506564,112.0434437&hl=id&z=17&output=embed';
 
 export default function PublicFooter() {
   return (

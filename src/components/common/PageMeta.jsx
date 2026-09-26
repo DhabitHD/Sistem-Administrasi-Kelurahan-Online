@@ -12,6 +12,7 @@ const pageNames = {
   layanan: 'Layanan',
   pengaduan: 'Pengaduan',
   pelacakan: 'Pelacakan',
+  tugas: 'Tugas Lapangan',
   kontak: 'Kontak',
   pemerintahan: 'Pemerintahan',
   cari: 'Cari',

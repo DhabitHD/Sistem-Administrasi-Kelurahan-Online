@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useVideo, addItem, updateItem, deleteItem } from '../../services/contentStore.js';
-import { uploadFile } from '../../services/api.js';
+import { useEffect, useState } from 'react';
+import { addItem, updateItem, deleteItem } from '../../services/contentStore.js';
+import { api, uploadFile } from '../../services/api.js';
 import { isYoutube, embedFromUrl } from '../../services/video.js';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
@@ -8,8 +8,17 @@ import AppAlert from '../../components/common/AppAlert.jsx';
 const empty = { title: '', video: '', desc: '', is_active: true, order: 1 };
 
 export default function AdminVideo() {
-  const items = useVideo();
+  const [items, setItems] = useState([]);
   const [editing, setEditing] = useState(null);
+
+  useEffect(() => {
+    api
+      .get('/admin/video')
+      .then(setItems)
+      .catch(() => setItems([]));
+  }, []);
+
+  const refresh = () => api.get('/admin/video').then(setItems).catch(() => {});
   const [form, setForm] = useState(empty);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -26,6 +35,7 @@ export default function AdminVideo() {
       setForm((f) => ({ ...f, video: path }));
     } catch (err) {
       setError(err.message || 'Gagal mengunggah video.');
+      e.target.value = '';
     }
   };
 
@@ -47,6 +57,7 @@ export default function AdminVideo() {
     try {
       if (editing) await updateItem('video', editing.slug, payload);
       else await addItem('video', payload);
+      await refresh();
       reset();
       setSuccess(editing ? 'Video diperbarui.' : 'Video baru ditambahkan.');
     } catch (err) {
@@ -66,6 +77,7 @@ export default function AdminVideo() {
     if (!window.confirm(`Hapus video "${it.title}"?`)) return;
     try {
       await deleteItem('video', it.slug);
+      await refresh();
     } catch (err) {
       setError(err.message || 'Gagal menghapus video.');
     }

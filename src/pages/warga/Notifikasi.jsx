@@ -13,7 +13,7 @@ export default function Notifikasi() {
       markNotifsSeen().then(() => {
         reload();
         refreshUser();
-      });
+      }).catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unread]);

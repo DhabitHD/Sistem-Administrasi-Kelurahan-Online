@@ -16,9 +16,9 @@ export default function VisiMisi() {
   const visi = profil?.visi || defaultVisi;
   const misi = Array.isArray(profil?.misi) && profil.misi.length ? profil.misi : defaultMisi;
   return (
-    <section className="py-5 section-bg-img">
+    <section className="py-5">
       <RevealOnScroll>
-      <div className="container">
+      <div className="container panel-card">
         <div className="section-head mx-auto text-center" style={{ maxWidth: 640 }}>
           <span className="eyebrow text-brand">ARAH PEMBANGUNAN</span>
           <h2 className="section-title">Visi &amp; Misi</h2>

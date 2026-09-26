@@ -19,10 +19,12 @@ export default function WargaProfil() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('File foto harus berupa gambar.');
+      e.target.value = '';
       return;
     }
     if (file.size > 500 * 1024) {
       setError('Ukuran foto maksimal 500 KB. Pilih foto yang lebih kecil.');
+      e.target.value = '';
       return;
     }
     const reader = new FileReader();

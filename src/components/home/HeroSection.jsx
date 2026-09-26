@@ -50,6 +50,7 @@ export default function HeroSection() {
   const trackRef = useRef(null);
   const parRef = useRef(null);
   const total = slides.length;
+  const safe = total ? index % total : 0;
 
   useEffect(() => {
     if (index >= total) setIndex(0);
@@ -104,10 +105,10 @@ export default function HeroSection() {
         <div
           className="hero-track"
           ref={trackRef}
-          style={{ transform: `translateX(-${index * 100}%)` }}
+          style={{ transform: `translateX(-${safe * 100}%)` }}
         >
           {slides.map((s, i) => (
-            <div className="hero-slide" key={s.image} style={{ backgroundImage: `url(${s.image})` }} aria-hidden={i !== index}></div>
+            <div className="hero-slide" key={s.image} style={{ backgroundImage: `url(${s.image})` }} aria-hidden={i !== safe}></div>
           ))}
         </div>
       </div>
@@ -123,12 +124,12 @@ export default function HeroSection() {
 
       {/* Content */}
       <div className="container position-relative z-1">
-        <div className="hero-content text-center mx-auto" key={index}>
-          <span className="hero-kicker">{slides[index].kicker}</span>
+        <div className="hero-content text-center mx-auto" key={safe}>
+          <span className="hero-kicker">{slides[safe].kicker}</span>
           <h1>
-            {slides[index].title_before}<span>{slides[index].title_span}</span>
+            {slides[safe].title_before}<span>{slides[safe].title_span}</span>
           </h1>
-          <p className="lead">{slides[index].lead}</p>
+          <p className="lead">{slides[safe].lead}</p>
           <div className="hero-actions d-flex justify-content-center flex-column flex-sm-row gap-2 gap-sm-3 mt-4">
             <Link to="/layanan" className="btn btn-brand btn-lg px-4">
               Lihat Layanan <AppIcon name="arrow-right" className="ms-2" />
@@ -146,9 +147,9 @@ export default function HeroSection() {
           <button
             key={s.image}
             role="tab"
-            aria-selected={i === index}
+            aria-selected={i === safe}
             aria-label={`Slide ${i + 1}`}
-            className={i === index ? 'active' : ''}
+            className={i === safe ? 'active' : ''}
             onClick={() => go(i)}
           ></button>
         ))}

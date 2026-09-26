@@ -21,6 +21,7 @@ export default function AdminPerangkat() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('File harus berupa gambar.');
+      e.target.value = '';
       return;
     }
     setError('');
@@ -31,6 +32,7 @@ export default function AdminPerangkat() {
         setForm((f) => ({ ...f, photo: path }));
       } catch (err) {
         setError(err.message || 'Gagal mengunggah gambar.');
+        e.target.value = '';
       }
     };
     reader.readAsDataURL(file);

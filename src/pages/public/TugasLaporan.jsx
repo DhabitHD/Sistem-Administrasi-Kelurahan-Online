@@ -3,9 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
-import { fetchTugas, submitTugasLaporan, uploadDataUrl } from '../../services/store.js';
+import { fetchTugas, submitTugasLaporan } from '../../services/store.js';
 import MultiFileUpload from '../../components/warga/MultiFileUpload.jsx';
-import { AttachmentList } from '../../services/files.jsx';
+import { AttachmentList, safeUrl } from '../../services/files.jsx';
 
 const fmt = (n) => String(n ?? 0).padStart(2, '0');
 
@@ -35,7 +35,7 @@ export default function TugasLaporan() {
     }
     setSaving(true);
     try {
-      const laporan_fotos = await Promise.all(fotos.map((f) => uploadDataUrl(f.dataUrl)));
+      const laporan_fotos = fotos.map((f) => f.dataUrl);
       const res = await submitTugasLaporan(token, { laporan: laporan.trim(), laporan_fotos: laporan_fotos.length ? laporan_fotos : null });
       setItem(res);
       setDone(true);
@@ -81,7 +81,7 @@ export default function TugasLaporan() {
               </div>
               <p className="text-muted small mt-3 mb-1">{item.description}</p>
               <p className="small mb-0"><AppIcon name="geo-alt" className="me-1 text-brand" />RT {fmt(item.rt)} / RW {fmt(item.rw)}</p>
-              {item.gmaps_link && <p className="small mb-0"><AppIcon name="map-pin" className="me-1 text-brand" /><a href={item.gmaps_link} target="_blank" rel="noreferrer" className="text-brand">Lihat peta</a></p>}
+              {safeUrl(item.gmaps_link) && <p className="small mb-0"><AppIcon name="map-pin" className="me-1 text-brand" /><a href={safeUrl(item.gmaps_link)} target="_blank" rel="noreferrer" className="text-brand">Lihat peta</a></p>}
               {(item.photos?.length || item.photo) && (
                 <div className="d-flex flex-wrap gap-2 mt-3">
                   {(item.photos?.length ? item.photos : [item.photo]).map((src, i) => (

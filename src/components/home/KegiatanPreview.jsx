@@ -6,8 +6,8 @@ import RevealOnScroll from '../common/RevealOnScroll.jsx';
 export default function KegiatanPreview() {
   const items = useBerita().filter((x) => ['Lingkungan','Kegiatan','Pemberdayaan'].includes(x.category)).slice(0, 3);
   return (
-    <section className="py-5 section-bg-img">
-      <div className="container">
+    <section className="py-5">
+      <div className="container panel-card">
         <RevealOnScroll>
           <div className="section-head">
             <div>

@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useHeroSlides, addSlide, updateSlide, deleteSlide } from '../../services/contentStore.js';
+import { useEffect, useState } from 'react';
+import { addSlide, updateSlide, deleteSlide } from '../../services/contentStore.js';
+import { api } from '../../services/api.js';
 import { uploadDataUrl } from '../../services/store.js';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
@@ -14,8 +15,17 @@ const presets = [
 const empty = { image: presets[0], kicker: '', title_before: '', title_span: '', lead: '', order: 1, is_active: true };
 
 export default function AdminHero() {
-  const slides = useHeroSlides();
+  const [slides, setSlides] = useState([]);
   const [editing, setEditing] = useState(null);
+
+  useEffect(() => {
+    api
+      .get('/admin/hero')
+      .then(setSlides)
+      .catch(() => setSlides([]));
+  }, []);
+
+  const refresh = () => api.get('/admin/hero').then(setSlides).catch(() => {});
   const [form, setForm] = useState(empty);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -28,6 +38,7 @@ export default function AdminHero() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('File harus berupa gambar.');
+      e.target.value = '';
       return;
     }
     setError('');
@@ -38,6 +49,7 @@ export default function AdminHero() {
         setForm((f) => ({ ...f, image: path }));
       } catch (err) {
         setError(err.message || 'Gagal mengunggah gambar.');
+        e.target.value = '';
       }
     };
     reader.readAsDataURL(file);
@@ -63,6 +75,7 @@ export default function AdminHero() {
     try {
       if (editing) await updateSlide(editing.id, payload);
       else await addSlide(payload);
+      await refresh();
       reset();
       setSuccess(editing ? 'Slide diperbarui.' : 'Slide baru ditambahkan.');
     } catch (err) {
@@ -90,6 +103,7 @@ export default function AdminHero() {
     if (!window.confirm(`Hapus slide "${it.kicker || 'tanpa judul'}"?`)) return;
     try {
       await deleteSlide(it.id);
+      await refresh();
     } catch (err) {
       setError(err.message || 'Gagal menghapus slide.');
     }

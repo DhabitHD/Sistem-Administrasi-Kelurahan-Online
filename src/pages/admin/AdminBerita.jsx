@@ -26,6 +26,7 @@ export default function AdminBerita() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('File harus berupa gambar.');
+      e.target.value = '';
       return;
     }
     setError('');
@@ -36,6 +37,7 @@ export default function AdminBerita() {
         setForm((f) => ({ ...f, image: path }));
       } catch (err) {
         setError(err.message || 'Gagal mengunggah gambar.');
+        e.target.value = '';
       }
     };
     reader.readAsDataURL(file);

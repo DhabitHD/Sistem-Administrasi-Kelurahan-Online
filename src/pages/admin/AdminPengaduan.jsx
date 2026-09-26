@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { adminComplaints, listOfficers, setItemStatus, assignOfficer, closeComplaint, uploadDataUrl } from '../../services/store.js';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
-import { Link } from 'react-router-dom';
-import { AttachmentList } from '../../services/files.jsx';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AttachmentList, safeUrl } from '../../services/files.jsx';
 
 const statuses = ['DIAJUKAN', 'IN_PROGRESS', 'CLOSED', 'DITOLAK'];
 
@@ -21,6 +21,8 @@ export default function AdminPengaduan() {
   const [closeText, setCloseText] = useState('');
   const [closeFoto, setCloseFoto] = useState(null);
   const [closing, setClosing] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const refresh = () => adminComplaints().then(setItems).catch(() => setItems([]));
 
@@ -28,6 +30,14 @@ export default function AdminPengaduan() {
     refresh();
     listOfficers().then(setOfficers).catch(() => setOfficers([]));
   }, []);
+
+  useEffect(() => {
+    const openId = location.state?.openId;
+    if (!openId) return;
+    const found = items.find((c) => c.id === openId);
+    if (found) openDetail(found);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [items]);
 
   const change = async (id, status) => {
     setMsg(''); setErr('');
@@ -208,7 +218,7 @@ export default function AdminPengaduan() {
                   <tr><th scope="row" className="text-muted fw-normal">Pengadu</th><td>{detail.owner}</td></tr>
                   <tr><th scope="row" className="text-muted fw-normal">Kategori</th><td>{detail.category}</td></tr>
                   <tr><th scope="row" className="text-muted fw-normal">Deskripsi</th><td>{detail.description}</td></tr>
-                  <tr><th scope="row" className="text-muted fw-normal">Lokasi</th><td>RT {fmt(detail.rt)} / RW {fmt(detail.rw)}{detail.gmaps_link && <> · <a href={detail.gmaps_link} target="_blank" rel="noreferrer" className="text-brand">Lihat peta</a></>}</td></tr>
+                  <tr><th scope="row" className="text-muted fw-normal">Lokasi</th><td>RT {fmt(detail.rt)} / RW {fmt(detail.rw)}{safeUrl(detail.gmaps_link) && <> · <a href={safeUrl(detail.gmaps_link)} target="_blank" rel="noreferrer" className="text-brand">Lihat peta</a></>}</td></tr>
                 </tbody>
               </table>
             </div>

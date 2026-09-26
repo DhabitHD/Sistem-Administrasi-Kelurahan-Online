@@ -29,7 +29,7 @@ export default function Beranda() {
       <WebsiteFeatures />
 
       {/* ── Ringkasan Pelayanan & Kontak ── */}
-      <section className="py-5 home-service-summary section-bg-img">
+      <section className="py-5 home-service-summary">
         <div className="container">
           <div className="row g-4">
             <div className="col-lg-4">

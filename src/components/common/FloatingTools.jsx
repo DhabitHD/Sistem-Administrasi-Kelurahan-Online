@@ -20,7 +20,7 @@ export default function FloatingTools() {
       >
         <AppIcon name="a-large-small" size={22} />
       </button>
-      <a className="floating-112" href="tel:112" aria-label="Hubungi Kediri 112" title="Kediri 112">
+      <a className="floating-112" href="https://lapormbakwali.kedirikota.go.id/" target="_blank" rel="noreferrer" aria-label="Hubungi Kediri 112" title="Kediri 112">
         <AppIcon name="chat-dots-fill" size={20} />
         <span>Kediri 112</span>
       </a>

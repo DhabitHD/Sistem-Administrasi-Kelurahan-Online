@@ -81,8 +81,8 @@ function AdminGuard() {
  * Guest Guard — redirects authenticated users away from login/register
  */
 function GuestOnly({ children }) {
-  const { isLoggedIn } = useAuth();
-  return isLoggedIn ? <Navigate to="/warga" replace /> : children;
+  const { isLoggedIn, user } = useAuth();
+  return isLoggedIn ? <Navigate to={user?.role === 'admin' ? '/admin' : '/warga'} replace /> : children;
 }
 
 export default function AppRoutes() {

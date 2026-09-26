@@ -26,7 +26,7 @@ export default function BeritaDetail() {
   }
 
   return (
-    <article className="container py-5 article-page">
+    <article className="container py-5 article-page panel-card">
       <Link to="/berita" className="text-brand text-decoration-none">
         <AppIcon name="arrow-left" /> Kembali ke Berita
       </Link>

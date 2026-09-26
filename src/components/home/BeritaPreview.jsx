@@ -7,9 +7,9 @@ import RevealOnScroll from '../common/RevealOnScroll.jsx';
 export default function BeritaPreview() {
   const berita = useBerita();
   return (
-    <section className="py-5 section-bg-img">
+    <section className="py-5">
       <RevealOnScroll>
-      <div className="container">
+      <div className="container panel-card">
         <div className="section-head">
           <div>
             <span className="eyebrow text-brand">INFORMASI TERBARU</span>

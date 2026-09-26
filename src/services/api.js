@@ -34,13 +34,14 @@ export class ApiError extends Error {
 }
 
 api.interceptors.response.use(
-  (res) => res.data?.data ?? res.data,
+  (res) => (res.data && Object.prototype.hasOwnProperty.call(res.data, 'data') ? res.data.data : res.data),
   (err) => {
     const status = err.response?.status;
     const message = err.response?.data?.message || err.message || 'Terjadi kesalahan.';
     if (status === 401) {
       setToken(null);
       storeUser(null);
+      window.dispatchEvent(new Event('betet:logged-out'));
     }
     return Promise.reject(new ApiError(message, status));
   }
@@ -49,6 +50,6 @@ api.interceptors.response.use(
 export async function uploadFile(file) {
   const fd = new FormData();
   fd.append('file', file);
-  const { path } = await api.post('/upload', fd);
+  const { path } = await api.post('/upload', fd, { timeout: 120000 });
   return path;
 }

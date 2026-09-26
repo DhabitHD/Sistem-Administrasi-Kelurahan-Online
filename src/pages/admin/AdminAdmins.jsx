@@ -60,6 +60,7 @@ export default function AdminAdmins() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('File harus berupa gambar.');
+      e.target.value = '';
       return;
     }
     setError('');
@@ -70,6 +71,7 @@ export default function AdminAdmins() {
         setForm((f) => ({ ...f, avatar: path }));
       } catch (err) {
         setError(err.message || 'Gagal mengunggah gambar.');
+        e.target.value = '';
       }
     };
     reader.readAsDataURL(file);
@@ -80,6 +82,7 @@ export default function AdminAdmins() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('File harus berupa gambar.');
+      e.target.value = '';
       return;
     }
     setError('');
@@ -90,6 +93,7 @@ export default function AdminAdmins() {
         setEditing((f) => ({ ...f, avatar: path }));
       } catch (err) {
         setError(err.message || 'Gagal mengunggah gambar.');
+        e.target.value = '';
       }
     };
     reader.readAsDataURL(file);

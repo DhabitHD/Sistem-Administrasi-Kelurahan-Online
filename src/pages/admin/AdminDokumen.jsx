@@ -27,6 +27,7 @@ export default function AdminDokumen() {
       setForm((f) => ({ ...f, file: path }));
     } catch (err) {
       setError(err.message || 'Gagal mengunggah file.');
+      e.target.value = '';
     }
   };
 

@@ -18,6 +18,12 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
+  useEffect(() => {
+    const on401 = () => setUser(null);
+    window.addEventListener('betet:logged-out', on401);
+    return () => window.removeEventListener('betet:logged-out', on401);
+  }, []);
+
   const applyUser = (u) => {
     storeUser(u);
     setUser(u);
@@ -44,6 +50,9 @@ export function AuthProvider({ children }) {
       const u = await applyUser(await api.get('/auth/me'));
       return u;
     } catch {
+      setToken(null);
+      storeUser(null);
+      setUser(null);
       return null;
     }
   };

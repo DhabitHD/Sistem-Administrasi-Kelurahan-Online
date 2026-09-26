@@ -26,53 +26,55 @@ export default function BeritaList() {
         </p>
       </div>
 
-      <div className="row g-3 align-items-center mb-4">
-        <div className="col-md-5">
-          <div className="input-group">
-            <span className="input-group-text bg-white"><AppIcon name="search" /></span>
-            <input
-              className="form-control"
-              placeholder="Cari berita…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              aria-label="Cari berita"
-            />
+      <div className="panel-card">
+        <div className="row g-3 align-items-center mb-4">
+          <div className="col-md-5">
+            <div className="input-group">
+              <span className="input-group-text bg-white"><AppIcon name="search" /></span>
+              <input
+                className="form-control"
+                placeholder="Cari berita…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                aria-label="Cari berita"
+              />
+            </div>
+          </div>
+          <div className="col-md-7">
+            <div className="d-flex gap-2 flex-wrap justify-content-md-end">
+              {categories.map((c) => (
+                <button
+                  key={c}
+                  className={`btn btn-sm ${cat === c ? 'btn-brand' : 'btn-outline-brand'}`}
+                  onClick={() => setCat(c)}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-        <div className="col-md-7">
-          <div className="d-flex gap-2 flex-wrap justify-content-md-end">
-            {categories.map((c) => (
-              <button
-                key={c}
-                className={`btn btn-sm ${cat === c ? 'btn-brand' : 'btn-outline-brand'}`}
-                onClick={() => setCat(c)}
-              >
-                {c}
-              </button>
+
+        {items.length === 0 ? (
+          <div className="empty-state">
+            <div className="service-icon mx-auto"><AppIcon name="search" /></div>
+            <h2 className="h5 mt-3">Tidak ada berita</h2>
+            <p className="text-muted mb-0">
+              Tidak ditemukan berita yang cocok dengan pencarian.
+            </p>
+          </div>
+        ) : (
+          <div className="row g-4">
+            {items.map((item) => (
+              <div className="col-md-6 col-lg-4" key={item.slug}>
+                <RevealOnScroll className="h-100">
+                  <NewsCard item={item} />
+                </RevealOnScroll>
+              </div>
             ))}
           </div>
-        </div>
+        )}
       </div>
-
-      {items.length === 0 ? (
-        <div className="empty-state">
-          <div className="service-icon mx-auto"><AppIcon name="search" /></div>
-          <h2 className="h5 mt-3">Tidak ada berita</h2>
-          <p className="text-muted mb-0">
-            Tidak ditemukan berita yang cocok dengan pencarian.
-          </p>
-        </div>
-      ) : (
-        <div className="row g-4">
-          {items.map((item) => (
-            <div className="col-md-6 col-lg-4" key={item.slug}>
-              <RevealOnScroll className="h-100">
-                <NewsCard item={item} />
-              </RevealOnScroll>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

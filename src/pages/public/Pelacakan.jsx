@@ -3,7 +3,7 @@ import AppIcon from '../../components/common/AppIcon.jsx';
 import { Link } from 'react-router-dom';
 import { fetchTracking } from '../../services/store.js';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
-import { AttachmentList } from '../../services/files.jsx';
+import { AttachmentList, safeUrl } from '../../services/files.jsx';
 
 export default function Pelacakan() {
   const [term, setTerm] = useState('');
@@ -85,7 +85,7 @@ export default function Pelacakan() {
               {result.item.rt != null && (
                 <p className="small text-muted mt-1 mb-0">
                   <AppIcon name="geo-alt" className="me-1 text-brand" />RT {String(result.item.rt).padStart(2, '0')} / RW {String(result.item.rw).padStart(2, '0')}
-                  {result.item.gmaps_link && <> · <a href={result.item.gmaps_link} target="_blank" rel="noreferrer" className="text-brand">Lihat peta</a></>}
+                  {safeUrl(result.item.gmaps_link) && <> · <a href={safeUrl(result.item.gmaps_link)} target="_blank" rel="noreferrer" className="text-brand">Lihat peta</a></>}
                 </p>
               )}
               {result.kind === 'Pengaduan' && (result.item.photos?.length || result.item.photo) && (

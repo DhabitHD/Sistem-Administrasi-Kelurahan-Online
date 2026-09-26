@@ -1,5 +1,7 @@
 import AppIcon from '../components/common/AppIcon.jsx';
 
+export const safeUrl = (u) => (/^https?:\/\//i.test(u || '') ? u : null);
+
 export const isImagePath = (p) => /\.(jpe?g|png|gif|webp|bmp)$/i.test((p || '').split('?')[0]);
 
 export const fileBaseName = (p) => {

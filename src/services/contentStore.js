@@ -73,7 +73,7 @@ export function useProfil() {
 
 async function mutate(kind, fn) {
   const item = await fn();
-  await loadContent();
+  await refreshAndNotify();
   return item;
 }
 

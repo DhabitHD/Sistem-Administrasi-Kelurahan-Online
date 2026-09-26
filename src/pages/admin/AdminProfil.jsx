@@ -36,6 +36,7 @@ export default function AdminProfil() {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('File harus berupa gambar.');
+      e.target.value = '';
       return;
     }
     setError('');
@@ -46,6 +47,7 @@ export default function AdminProfil() {
         setForm((f) => ({ ...f, [field]: path }));
       } catch (err) {
         setError(err.message || 'Gagal mengunggah gambar.');
+        e.target.value = '';
       }
     };
     reader.readAsDataURL(file);

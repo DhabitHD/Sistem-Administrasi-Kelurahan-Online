@@ -12,9 +12,9 @@ export default function SambutanLurah() {
         'Kami mengajak seluruh warga untuk memanfaatkan kanal digital ini — mulai dari informasi kegiatan, pengaduan, hingga pengajuan surat.',
       ];
   return (
-    <section className="py-5 section-bg-img">
+    <section className="py-5">
       <RevealOnScroll>
-      <div className="container">
+      <div className="container panel-card">
         <div className="row align-items-center g-5">
           {/* Photo */}
           <div className="col-lg-5">

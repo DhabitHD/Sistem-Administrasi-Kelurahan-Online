@@ -8,9 +8,9 @@ export default function VideoPreview() {
   if (!videos || videos.length === 0) return null;
 
   return (
-    <section className="py-5 section-bg-img bg-pattern">
+    <section className="py-5">
       <RevealOnScroll>
-      <div className="container">
+      <div className="container panel-card">
         <div className="text-center mx-auto" style={{ maxWidth: 640, marginBottom: '2.5rem' }}>
           <span className="eyebrow text-brand">MULTIMEDIA</span>
           <h2 className="section-title mt-2">Video Kegiatan Kelurahan</h2>

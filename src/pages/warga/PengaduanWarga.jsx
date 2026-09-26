@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import StatusTimeline from '../../components/common/StatusTimeline.jsx';
 import { useComplaints } from '../../services/store.js';
-import { AttachmentList } from '../../services/files.jsx';
+import { AttachmentList, safeUrl } from '../../services/files.jsx';
 
 const fmt = (n) => String(n ?? 0).padStart(2, '0');
 
@@ -46,7 +46,7 @@ export default function PengaduanWarga() {
                   <StatusBadge status={c.status} />
                 </div>
                 <p className="text-muted small mt-3 mb-1">{c.description}</p>
-                <p className="small mb-0"><AppIcon name="geo-alt" className="me-1 text-brand" />RT {fmt(c.rt)} / RW {fmt(c.rw)}{c.gmaps_link && <> · <a href={c.gmaps_link} target="_blank" rel="noreferrer" className="text-brand text-decoration-none">Lihat peta</a></>}</p>
+                <p className="small mb-0"><AppIcon name="geo-alt" className="me-1 text-brand" />RT {fmt(c.rt)} / RW {fmt(c.rw)}{c.gmaps_link && safeUrl(c.gmaps_link) && <> · <a href={safeUrl(c.gmaps_link)} target="_blank" rel="noreferrer" className="text-brand text-decoration-none">Lihat peta</a></>}</p>
                 {c.laporan && (
                   <div className="small mt-2 pt-2 border-top border-light">
                     <strong className="d-block mb-1">Laporan penutupan:</strong>
