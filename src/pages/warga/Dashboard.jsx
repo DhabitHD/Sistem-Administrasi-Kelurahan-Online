@@ -4,12 +4,14 @@ import { useAuth } from '../../contexts/AuthContext.jsx';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { useComplaints, useLetters, useNotifications, trackVisit } from '../../services/store.js';
+import AppAlert from '../../components/common/AppAlert.jsx';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { items: complaints } = useComplaints();
-  const { items: letters } = useLetters();
-  const { items: notifications } = useNotifications();
+  const { items: complaints, error: cErr } = useComplaints();
+  const { items: letters, error: lErr } = useLetters();
+  const { items: notifications, error: nErr } = useNotifications();
+  const error = cErr || lErr || nErr;
 
   useEffect(() => {
     trackVisit();
@@ -27,6 +29,12 @@ export default function Dashboard() {
           <StatusBadge status={user.status} />
         </div>
       </div>
+
+      {error && (
+        <AppAlert type="danger">
+          Sebagian data dashboard gagal dimuat dari server ({error}). Coba muat ulang halaman.
+        </AppAlert>
+      )}
 
       {/* Quick action cards */}
       <div className="row g-4 mb-4">

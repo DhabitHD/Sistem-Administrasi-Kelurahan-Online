@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { createLetter, uploadDataUrl } from '../../services/store.js';
@@ -18,6 +18,10 @@ export default function SuratBaru() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [sending, setSending] = useState(false);
+  /* See PengaduanBaru: cancel the delayed redirect if the page unmounts first. */
+  const redirectTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(redirectTimer.current), []);
 
   const selectedType = letterTypes.find((l) => l.name === form.jenis) || null;
 
@@ -29,10 +33,15 @@ export default function SuratBaru() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [letterTypes.length, preselect]);
 
-  const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+  /* Accepts a plain value or a functional updater — MultiFileUpload passes
+     (prev) => next so rapid selections append instead of overwriting. */
+  const update = (key, valueOrFn) =>
+    setForm((f) => ({ ...f, [key]: typeof valueOrFn === 'function' ? valueOrFn(f[key]) : valueOrFn }));
+
 
   const submit = async (e) => {
     e.preventDefault();
+    if (sending) return;
     setError(''); setSuccess('');
     if (!form.jenis) {
       setError('Pilih jenis surat terlebih dahulu.');
@@ -48,7 +57,7 @@ export default function SuratBaru() {
       const letter = await createLetter({ jenis: form.jenis, description: form.description, catatan: form.catatan, attachments: attachments.length ? attachments : null });
       setSuccess(`Pengajuan ${letter.id_code} berhasil dikirim.${attachments.length ? ` ${attachments.length} lampiran terunggah.` : ''}`);
       setForm((f) => ({ ...f, description: '', catatan: '', attachments: [] }));
-      setTimeout(() => nav('/warga/surat'), 900);
+      redirectTimer.current = setTimeout(() => nav('/warga/surat'), 900);
     } catch (err) {
       setError(err.message || 'Gagal mengirim pengajuan.');
     } finally {
@@ -109,8 +118,8 @@ export default function SuratBaru() {
               {error && <AppAlert type="danger">{error}</AppAlert>}
               {success && <AppAlert type="success">{success}</AppAlert>}
 
-              <button className="btn btn-brand" type="submit">
-                Kirim Pengajuan <AppIcon name="send" className="ms-1" />
+              <button className="btn btn-brand" type="submit" disabled={sending}>
+                {sending ? 'Mengirim…' : 'Kirim Pengajuan'} <AppIcon name="send" className="ms-1" />
               </button>
               <Link to="/warga/surat" className="btn btn-outline-brand ms-2">Batal</Link>
             </form>

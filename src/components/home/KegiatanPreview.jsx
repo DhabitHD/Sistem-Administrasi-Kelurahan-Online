@@ -22,7 +22,7 @@ export default function KegiatanPreview() {
             <div className="col-md-4" key={item.slug}>
               <RevealOnScroll className={`delay-${i + 1}`}>
                 <article className="card border-0 h-100">
-                  <img src={item.image} className="news-thumb w-100" alt="" />
+                  <img src={item.image} className="news-thumb w-100" alt="" loading="lazy" decoding="async" />
                   <div className="card-body p-4">
                     <span className="eyebrow">{item.category}</span>
                     <h3 className="h5 mt-2">{item.title}</h3>

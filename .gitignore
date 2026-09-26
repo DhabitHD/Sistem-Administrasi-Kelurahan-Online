@@ -18,3 +18,10 @@ Thumbs.db
 test-results/
 playwright-report/
 blob-report/
+
+# One-off local screenshot / script scratch files
+hero-shot.png
+latest-home.png
+uploadcheck.png
+*.shot.png
+herocheck.cjs

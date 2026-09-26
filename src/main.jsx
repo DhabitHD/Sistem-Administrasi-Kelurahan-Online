@@ -6,11 +6,14 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './styles/app.css';
 import App from './App.jsx';
 import { AuthProvider } from './contexts/AuthContext.jsx';
+import ErrorBoundary from './components/common/ErrorBoundary.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );

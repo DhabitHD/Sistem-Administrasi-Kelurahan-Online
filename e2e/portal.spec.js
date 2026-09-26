@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
 
-const KTP = 'C:\\Users\\ASUS\\OneDrive\\Desktop\\tester\\frontend-betet - Copy\\public\\assets\\placeholders\\ktp-preview-placeholder.png';
+/* Was an absolute path into a different directory on one developer's desktop, so
+   the suite could not run anywhere else. Resolve from this file instead. */
+const KTP = fileURLToPath(new URL('../public/assets/placeholders/ktp-preview-placeholder.png', import.meta.url));
 const PASS = 'rahasia123';
 
 async function login(page, identity, password, expectPath) {
@@ -13,7 +16,7 @@ async function login(page, identity, password, expectPath) {
   await page.waitForURL(new RegExp(expectPath));
 }
 
-test('preloader tampil lalu hilang (~3s) + logo', async ({ page }) => {
+test('preloader tampil lalu hilang (<1s) + logo', async ({ page }) => {
   await page.goto('/');
   const pl = page.locator('.preloader');
   await expect(pl).toBeVisible();
@@ -81,7 +84,9 @@ test('alur lengkap warga: daftar -> verifikasi admin -> layanan -> notif -> prof
   await page.locator('#rt').fill('1');
   await page.locator('#rw').fill('2');
   await page.locator('#gmaps_link').fill('https://maps.google.com/?q=test');
-  await page.locator('#photo').setInputFiles(KTP);
+  /* MultiFileUpload renders id="photos" (PengaduanBaru.jsx:106). This selector
+     never matched anything, so the upload step silently did nothing. */
+  await page.locator('#photos').setInputFiles(KTP);
   await page.getByRole('button', { name: /Kirim Pengaduan/ }).click();
   await expect(page).toHaveURL(/pengaduan$/);
   await expect(page.getByText('E2E lampu mati').first()).toBeVisible();

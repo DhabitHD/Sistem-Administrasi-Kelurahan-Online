@@ -14,10 +14,18 @@ export default function Pelacakan() {
 
   const submit = async (e) => {
     e.preventDefault();
-    setError(''); setSearched(false);
+    setError(''); setResult(null); setSearched(false);
+    const code = term.trim();
+    if (!code) {
+      /* Without this the empty submit hit GET /tracking/ and surfaced as a
+         confusing server-side "Kode tidak ditemukan". */
+      setError('Masukkan kode pengaduan atau surat terlebih dahulu.');
+      setSearched(true);
+      return;
+    }
     setSearching(true);
     try {
-      const res = await fetchTracking(term.trim());
+      const res = await fetchTracking(code);
       setResult(res);
     } catch (err) {
       setResult(null);
@@ -55,7 +63,7 @@ export default function Pelacakan() {
               </button>
             </form>
             <small className="text-muted mt-2 d-block">
-              Contoh kode demo: <code>PGD-001</code> · <code>SK-015</code> · <code>SK-011</code>
+              Contoh kode demo: <code>PGD-001</code> · <code>SK-004</code>
             </small>
           </div>
 
@@ -67,7 +75,7 @@ export default function Pelacakan() {
           )}
 
           {result && (
-            <div className="side-card mt-4">
+            <div className="side-card mt-4" aria-live="polite">
               <div className="d-flex justify-content-between align-items-start gap-3">
                 <div>
                   <span className="eyebrow text-brand">{result.kind}</span>

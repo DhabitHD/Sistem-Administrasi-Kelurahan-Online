@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { useNavigate, Link } from 'react-router-dom';
 import { createComplaint, uploadDataUrl } from '../../services/store.js';
@@ -13,11 +13,22 @@ export default function PengaduanBaru() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [sending, setSending] = useState(false);
+  /* The post-success redirect is delayed so the resident can read the confirmation.
+     Hold the id so unmounting (sidebar click, browser Back) cancels it — otherwise
+     the timer fires later and yanks them out of wherever they navigated to. */
+  const redirectTimer = useRef(null);
 
-  const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
+  useEffect(() => () => clearTimeout(redirectTimer.current), []);
+
+  /* Accepts a plain value or a functional updater — MultiFileUpload passes
+     (prev) => next so rapid selections append instead of overwriting. */
+  const update = (key, valueOrFn) =>
+    setForm((f) => ({ ...f, [key]: typeof valueOrFn === 'function' ? valueOrFn(f[key]) : valueOrFn }));
+
 
   const submit = async (e) => {
     e.preventDefault();
+    if (sending) return;
     setError(''); setSuccess('');
     const rt = Number(form.rt);
     const rw = Number(form.rw);
@@ -39,7 +50,7 @@ export default function PengaduanBaru() {
       });
       setSuccess(`Pengaduan ${complaint.id_code} berhasil dikirim.${photos.length ? ` ${photos.length} foto terunggah.` : ''}`);
       setForm({ category: categories[0], title: '', description: '', rt: '', rw: '', gmaps_link: '', photos: [] });
-      setTimeout(() => nav('/warga/pengaduan'), 900);
+      redirectTimer.current = setTimeout(() => nav('/warga/pengaduan'), 900);
     } catch (err) {
       setError(err.message || 'Gagal mengirim pengaduan.');
     } finally {
@@ -108,8 +119,8 @@ export default function PengaduanBaru() {
               {error && <AppAlert type="danger">{error}</AppAlert>}
               {success && <AppAlert type="success">{success}</AppAlert>}
 
-              <button className="btn btn-brand" type="submit">
-                Kirim Pengaduan <AppIcon name="send" className="ms-1" />
+              <button className="btn btn-brand" type="submit" disabled={sending}>
+                {sending ? 'Mengirim…' : 'Kirim Pengaduan'} <AppIcon name="send" className="ms-1" />
               </button>
               <Link to="/warga/pengaduan" className="btn btn-outline-brand ms-2">Batal</Link>
             </form>

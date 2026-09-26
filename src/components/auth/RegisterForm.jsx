@@ -125,7 +125,10 @@ const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
       await register(form);
       nav('/verifikasi');
     } catch (err) {
-      setError(err.message || 'Pendaftaran gagal. Periksa kembali data Anda.');
+      /* Prefer the specific field message from a Laravel 422 (duplicate NIK, email
+         taken, …) over the generic sentence. */
+      const detail = [err?.fieldError?.('nik'), err?.fieldError?.('kk'), err?.fieldError?.('wa'), err?.fieldError?.('email')].filter(Boolean)[0];
+      setError(detail || err?.message || 'Pendaftaran gagal. Periksa kembali data Anda.');
     } finally {
       setSubmitting(false);
     }

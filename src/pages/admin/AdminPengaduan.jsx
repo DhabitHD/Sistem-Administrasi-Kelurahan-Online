@@ -4,10 +4,16 @@ import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AttachmentList, safeUrl } from '../../services/files.jsx';
+import AppModal from '../../components/common/AppModal.jsx';
 
 const statuses = ['DIAJUKAN', 'IN_PROGRESS', 'CLOSED', 'DITOLAK'];
 
 const fmt = (n) => String(n ?? 0).padStart(2, '0');
+
+/* Petugas rows are allowed to have no wa (kontak-saja officers), so this must
+   return null rather than throwing — a bare .replace here used to take down the
+   whole page. Mirrors AdminSurat.jsx:9. */
+const waLink = (wa) => (wa ? `https://wa.me/${String(wa).replace(/^0/, '62')}` : null);
 
 export default function AdminPengaduan() {
   const [items, setItems] = useState([]);
@@ -21,29 +27,49 @@ export default function AdminPengaduan() {
   const [closeText, setCloseText] = useState('');
   const [closeFoto, setCloseFoto] = useState(null);
   const [closing, setClosing] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
 
-  const refresh = () => adminComplaints().then(setItems).catch(() => setItems([]));
+  /* Swallowing the error and returning [] makes a dead backend look identical to
+     "no complaints exist", which is a dangerous thing to show an admin. */
+  const refresh = () =>
+    adminComplaints()
+      .then((d) => { setItems(d); setLoadError(''); })
+      .catch((e) => { setItems([]); setLoadError(e.message || 'Gagal memuat pengaduan.'); });
 
   useEffect(() => {
     refresh();
-    listOfficers().then(setOfficers).catch(() => setOfficers([]));
+    listOfficers()
+      .then(setOfficers)
+      .catch(() => setErr('Gagal memuat daftar petugas. Nama petugas mungkin tidak lengkap.'));
   }, []);
 
   useEffect(() => {
     const openId = location.state?.openId;
     if (!openId) return;
     const found = items.find((c) => c.id === openId);
-    if (found) openDetail(found);
+    /* items is still [] on the first run while the fetch is in flight. Clearing the
+       state here would drop the deep link from AdminDashboard before it can resolve.
+       Bail silently while still loading; once the list is in, also clear the state
+       on a miss so it does not linger for the rest of the session. */
+    if (!found) {
+      if (items.length > 0) navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+    openDetail(found);
     navigate(location.pathname, { replace: true, state: null });
-  }, [items]);
+  }, [items, location.state?.openId]);
 
   const change = async (id, status) => {
+    const target = items.find((c) => c.id === id);
+    /* Mirrors AdminSurat.change(): the <select> sits on a clickable card, so a
+       mis-click silently advanced a complaint with no way back. */
+    if (!window.confirm(`Ubah status pengaduan ${target?.id_code || id} menjadi ${status}?`)) return;
     setMsg(''); setErr('');
     try {
       await setItemStatus('pengaduan', id, status);
-      setMsg(`Status ${id} diubah menjadi ${status}.`);
+      setMsg(`Status pengaduan ${target?.id_code || id} diubah menjadi ${status}.`);
     } catch (e) {
       setErr(e.message || 'Gagal mengubah status.');
     }
@@ -133,9 +159,12 @@ export default function AdminPengaduan() {
 
       {msg && <div className="mb-3 alert alert-success py-2">{msg}</div>}
       {err && <div className="mb-3 alert alert-danger py-2">{err}</div>}
+      {loadError && <div className="mb-3 alert alert-danger py-2" role="alert">Data pengaduan gagal dimuat: {loadError}</div>}
 
       {filtered.length === 0 ? (
-        <div className="dashboard-card p-5 text-center"><p className="text-muted mb-0">Tidak ada pengaduan.</p></div>
+        <div className="dashboard-card p-5 text-center">
+          <p className="text-muted mb-0">{loadError ? 'Data tidak dapat ditampilkan.' : 'Tidak ada pengaduan.'}</p>
+        </div>
       ) : (
         <div className="row g-4">
           {filtered.map((c) => (
@@ -145,7 +174,15 @@ export default function AdminPengaduan() {
                 role="button"
                 tabIndex={0}
                 onClick={() => openDetail(c)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(c); } }}
+                onKeyDown={(e) => {
+                  /* This card contains a status <select> and a WhatsApp link.
+                     Keydown from either bubbles here, and this handler's
+                     e.preventDefault() would swallow it — the select became
+                     unusable by keyboard. */
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(c); }
+                }}
+
                 aria-label={`Detail ${c.id_code}`}
               >
                 <div className="d-flex justify-content-between align-items-start gap-3">
@@ -163,26 +200,29 @@ export default function AdminPengaduan() {
                   <p className="small mb-0 mt-1">
                     <AppIcon name="user-cog" className="me-1 text-brand" />
                     Petugas: <strong>{c.petugas.nama}</strong>
-                    {' · '}
-                    <a
-                      href={`https://wa.me/${c.petugas.wa.replace(/^0/, '62')}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-brand"
-                      onClick={(e) => e.stopPropagation()}
-                    >chat</a>
+                    {waLink(c.petugas.wa) && (
+                      <>
+                        {' · '}
+                        <a
+                          href={waLink(c.petugas.wa)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-brand"
+                          onClick={(e) => e.stopPropagation()}
+                        >chat</a>
+                      </>
+                    )}
                   </p>
                 )}
                 <div className="mt-3 pt-3 border-top d-flex align-items-center gap-2 flex-wrap">
                   <span className="small text-muted"><AppIcon name="eye" className="me-1" />Klik kartu untuk detail lengkap &amp; plot petugas.</span>
-                  {c.status === 'CLOSED' || c.status === 'DITOLAK' || <span className="small text-muted ms-2">Ubah status:</span>}
-                  {c.status === 'CLOSED' || c.status === 'DITOLAK' || (
+                  {(c.status !== 'CLOSED' && c.status !== 'DITOLAK') && <span className="small text-muted ms-2">Ubah status:</span>}
+                  {(c.status !== 'CLOSED' && c.status !== 'DITOLAK') && (
                     <select
                       className="form-select form-select-sm"
                       style={{ maxWidth: 190 }}
                       value={c.status}
                       onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => e.stopPropagation()}
                       onChange={(e) => change(c.id, e.target.value)}
                       aria-label={`Status ${c.id_code}`}
                     >
@@ -197,8 +237,7 @@ export default function AdminPengaduan() {
       )}
 
       {detail && (
-        <div className="ktp-lightbox" onClick={() => setDetail(null)} role="presentation">
-          <div className="ktp-lightbox-box" onClick={(e) => e.stopPropagation()}>
+        <AppModal onClose={() => setDetail(null)} label={`Detail pengaduan ${detail.id_code}`}>
             <div className="d-flex justify-content-between align-items-center mb-2 gap-2">
               <div>
                 <h3 className="h5 mb-1">{detail.title}</h3>
@@ -248,7 +287,8 @@ export default function AdminPengaduan() {
               <div className="mt-3 pt-3 border-top">
                 <strong className="d-block mb-1"><AppIcon name="file-text" className="me-1 text-brand" />Tutup Pengaduan dengan Laporan</strong>
                 <p className="small text-muted mb-2">Administrasi bisa menutup pengaduan beserta laporan hasil penanganan. Laporan tercantum dan terlihat oleh warga.</p>
-                <textarea rows="3" className="form-control mb-2" placeholder="Uraian laporan hasil penanganan…" value={closeText} onChange={(e) => setCloseText(e.target.value)}></textarea>
+                <label className="form-label fw-semibold" htmlFor="admin-close-laporan">Laporan hasil penanganan</label>
+                <textarea id="admin-close-laporan" rows="3" className="form-control mb-2" placeholder="Uraian laporan hasil penanganan…" value={closeText} onChange={(e) => setCloseText(e.target.value)}></textarea>
                 <div className="mb-2">
                   <label className="form-label fw-semibold" htmlFor="admin-close-foto">Foto bukti penanganan (opsional)</label>
                   <input id="admin-close-foto" type="file" accept="image/*" className="form-control" onChange={onCloseFoto} />
@@ -294,8 +334,7 @@ export default function AdminPengaduan() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
+        </AppModal>
       )}
     </div>
   );

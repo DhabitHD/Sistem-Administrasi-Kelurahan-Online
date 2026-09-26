@@ -71,7 +71,7 @@ export default function AdminPengumuman() {
 
   const startEdit = (it) => {
     setEditing(it);
-    setForm({ title: it.title, summary: it.summary, image: it.image, content: it.content.join('\n') });
+    setForm({ title: it.title, summary: it.summary, image: it.image, content: Array.isArray(it.content) ? it.content.join('\n') : (it.content || '') });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -108,6 +108,7 @@ export default function AdminPengumuman() {
                   {!images.includes(form.image) && <option value={form.image}>File unggahan ({form.image.split('/').pop()})</option>}
                 </select>
                 <div className="mt-2">
+                  <label className="form-label small fw-semibold" htmlFor="p-img-file">Atau unggah gambar</label>
                   <input id="p-img-file" type="file" accept="image/*" className="form-control" onChange={onImageFile} />
                   {form.image && <img src={form.image} className="upload-preview mt-2" alt="Pratinjau" style={{ maxHeight: 120 }} />}
                 </div>
@@ -137,21 +138,23 @@ export default function AdminPengumuman() {
             <div className="row g-3">
               {items.map((it) => (
                 <div className="col-md-6 d-flex" key={it.slug}>
-                  <div className="dashboard-card p-3 w-100">
+                  <div className="dashboard-card p-3 w-100 d-flex flex-column">
                     <div className="d-flex gap-3 align-items-start">
-                      <img src={it.image} alt="" className="rounded" style={{ width: 96, height: 72, objectFit: 'cover' }} />
-                      <div className="flex-grow-1">
+                      <img src={it.image} alt="" className="rounded flex-shrink-0" style={{ width: 96, height: 72, objectFit: 'cover' }} />
+                      <div className="flex-grow-1" style={{ minWidth: 0 }}>
                         <small className="text-brand fw-semibold d-block">{it.date}</small>
                         <h3 className="h6 mt-1 mb-0">{it.title}</h3>
                       </div>
-                      <div className="d-flex gap-1 flex-shrink-0">
-                        <button className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} title="Ubah">
-                          <AppIcon name="pencil" size={15} />
-                        </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} title="Hapus">
-                          <AppIcon name="trash" size={15} />
-                        </button>
-                      </div>
+                    </div>
+                    {/* Own row: inline, these buttons squeezed the title into ~135px
+                        and sat in the top-right corner. Matches AdminPengaduan. */}
+                    <div className="mt-3 pt-3 border-top d-flex gap-2 justify-content-end flex-shrink-0">
+                      <button type="button" aria-label="Ubah" title="Ubah" className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)}>
+                        <AppIcon name="pencil" size={15} />
+                      </button>
+                      <button type="button" aria-label="Hapus" title="Hapus" className="btn btn-sm btn-outline-danger" onClick={() => remove(it)}>
+                        <AppIcon name="trash" size={15} />
+                      </button>
                     </div>
                   </div>
                 </div>

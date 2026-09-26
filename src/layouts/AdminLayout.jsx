@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import AppIcon from '../components/common/AppIcon.jsx';
+import ContentErrorBanner from '../components/common/ContentErrorBanner.jsx';
 
 const links = [
   ['/admin', 'Dashboard', 'layout-dashboard', true],
@@ -70,6 +71,7 @@ export default function AdminLayout() {
           </div>
         </header>
         <main className="p-3 p-lg-4">
+          <ContentErrorBanner />
           <Outlet />
         </main>
       </div>

@@ -4,7 +4,7 @@ import AppIcon from '../common/AppIcon.jsx';
 export default function NewsCard({ item }) {
   return (
     <article className="card border-0 shadow-sm h-100 overflow-hidden">
-      <img src={item.image} className="card-img-top news-thumb" alt={item.title} />
+      <img src={item.image} className="card-img-top news-thumb" alt={item.title} loading="lazy" decoding="async" />
       <div className="card-body p-4">
         <small className="text-brand fw-semibold">
           {item.category} · {item.date}

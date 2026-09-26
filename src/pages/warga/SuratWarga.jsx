@@ -5,10 +5,11 @@ import StatusBadge from '../../components/common/StatusBadge.jsx';
 import StatusTimeline from '../../components/common/StatusTimeline.jsx';
 import { useLetters } from '../../services/store.js';
 import { AttachmentList } from '../../services/files.jsx';
+import AppAlert from '../../components/common/AppAlert.jsx';
 
 export default function SuratWarga() {
   const [open, setOpen] = useState(null);
-  const { items: letters } = useLetters();
+  const { items: letters, error } = useLetters();
 
   return (
     <div className="container-fluid">
@@ -23,7 +24,13 @@ export default function SuratWarga() {
         </Link>
       </div>
 
-      {letters.length === 0 ? (
+      {error && (
+        <AppAlert type="danger">
+          Gagal memuat pengajuan surat dari server ({error}). Data Anda aman — coba muat ulang halaman.
+        </AppAlert>
+      )}
+
+      {!error && (letters.length === 0 ? (
         <div className="dashboard-card p-5 text-center">
           <div className="service-icon mx-auto"><AppIcon name="folder2-open" /></div>
           <h2 className="h5 mt-3">Belum ada pengajuan surat</h2>
@@ -62,7 +69,7 @@ export default function SuratWarga() {
             </div>
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 }

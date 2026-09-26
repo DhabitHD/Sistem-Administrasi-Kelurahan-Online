@@ -14,7 +14,10 @@ const labels = {
 export default function StatusTimeline({ kind, status }) {
   const steps = flows[kind] || flows.pengaduan;
   const idx = steps.indexOf(status);
-  const done = idx >= 0 ? idx : -1;
+  /* DITOLAK is not part of either forward flow, so indexOf returns -1. Without
+     this branch every step would render as "Menunggu" and a rejected complaint
+     would read as still queued. */
+  const done = status === 'DITOLAK' ? 0 : idx >= 0 ? idx : -1;
 
   return (
     <ol className="status-timeline mb-0">

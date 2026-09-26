@@ -57,8 +57,25 @@ export default function HeroSection() {
   }, [index, total]);
 
   useEffect(() => {
-    const timer = setInterval(() => setIndex((i) => (i + 1) % total), 6000);
-    return () => clearInterval(timer);
+    if (total < 2) return undefined;
+    /* Pause on a backgrounded tab — a 6 s interval keeps firing in a hidden tab
+       and the visitor returns to an arbitrary slide. */
+    let timer = null;
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => setIndex((i) => (i + 1) % total), 6000);
+    };
+    const stop = () => {
+      if (timer) clearInterval(timer);
+      timer = null;
+    };
+    const onVisibility = () => (document.hidden ? stop() : start());
+    if (!document.hidden) start();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      stop();
+    };
   }, [total]);
 
   useEffect(() => {
@@ -85,6 +102,12 @@ export default function HeroSection() {
   const onPointerDown = (e) => {
     dragging.current = { x: e.clientX };
   };
+  /* Without these, a pointerup lost to an OS gesture or a drag off-window left
+     dragging.current holding a stale x, and the next pointerup computed a bogus
+     dx — flipping the slide on an unrelated gesture. */
+  const onPointerCancel = () => {
+    dragging.current = null;
+  };
   const onPointerUp = (e) => {
     if (!dragging.current) return;
     const dx = e.clientX - dragging.current.x;
@@ -96,9 +119,12 @@ export default function HeroSection() {
   return (
     <section
       className="hero-carousel"
+      aria-roledescription="carousel"
       aria-label="Selamat datang di Kelurahan Betet"
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onPointerLeave={onPointerCancel}
     >
       {/* Slide images */}
       <div className="hero-parallax" ref={parRef}>
@@ -108,17 +134,30 @@ export default function HeroSection() {
           style={{ transform: `translateX(-${safe * 100}%)` }}
         >
           {slides.map((s, i) => (
-            <div className="hero-slide" key={s.image} style={{ backgroundImage: `url(${s.image})` }} aria-hidden={i !== safe}></div>
+            /* key={s.image} collided whenever an admin gave two slides the same
+               preset image (AdminHero allows it), which broke reconciliation. */
+            <div className="hero-slide" key={s.id ?? `${s.image}-${i}`} aria-hidden={i !== safe}>
+              {/* Real <img> rather than a CSS background: preloadable, lazy-able and
+                  visible to crawlers. Decorative only — the <h1> below carries the message. */}
+              <img
+                src={s.image}
+                alt=""
+                width="1600"
+                height="900"
+                decoding="async"
+                {...(i === 0 ? { fetchpriority: 'high' } : { loading: 'lazy' })}
+              />
+            </div>
           ))}
         </div>
       </div>
       <div className="hero-overlay" aria-hidden="true"></div>
 
       {/* Arrows */}
-      <button className="hero-arrow hero-arrow-left" aria-label="Slide sebelumnya" onClick={() => go(index - 1)}>
+      <button type="button" className="hero-arrow hero-arrow-left" aria-label="Slide sebelumnya" onClick={() => go(index - 1)}>
         <AppIcon name="arrow-left" size={22} />
       </button>
-      <button className="hero-arrow hero-arrow-right" aria-label="Slide berikutnya" onClick={() => go(index + 1)}>
+      <button type="button" className="hero-arrow hero-arrow-right" aria-label="Slide berikutnya" onClick={() => go(index + 1)}>
         <AppIcon name="arrow-right" size={22} />
       </button>
 
@@ -127,7 +166,12 @@ export default function HeroSection() {
         <div className="hero-content text-center mx-auto" key={safe}>
           <span className="hero-kicker">{slides[safe].kicker}</span>
           <h1>
-            {slides[safe].title_before}<span>{slides[safe].title_span}</span>
+            {/* Explicit space: the default slides only read correctly because
+                title_before happened to end in a space, and AdminHero's form gives
+                no hint that a trailing space is load-bearing. */}
+            {slides[safe].title_before}
+            {' '}
+            <span>{slides[safe].title_span}</span>
           </h1>
           <p className="lead">{slides[safe].lead}</p>
           <div className="hero-actions d-flex justify-content-center flex-column flex-sm-row gap-2 gap-sm-3 mt-4">
@@ -141,13 +185,14 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Dots */}
-      <div className="hero-dots" role="tablist" aria-label="Pilih slide">
+      {/* Dots — plain toggle buttons. A tablist requires role="tabpanel" children,
+          which a background-image carousel does not have, so the ARIA is dropped. */}
+      <div className="hero-dots" role="group" aria-label="Pilih slide">
         {slides.map((s, i) => (
           <button
-            key={s.image}
-            role="tab"
-            aria-selected={i === safe}
+            type="button"
+            key={s.id ?? `${s.image}-${i}`}
+            aria-current={i === safe ? 'true' : undefined}
             aria-label={`Slide ${i + 1}`}
             className={i === safe ? 'active' : ''}
             onClick={() => go(i)}

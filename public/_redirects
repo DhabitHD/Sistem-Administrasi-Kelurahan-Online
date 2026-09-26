@@ -1,0 +1,14 @@
+# SPA routing + API proxy — Netlify / Cloudflare Pages.
+# Keep in sync with public/.htaccess and vercel.json.
+
+# Rules are evaluated top-down, first match wins. The /api rule MUST stay above
+# the SPA catch-all, otherwise /api/* matches no static file and falls through to
+# /index.html — axios then receives HTML for every request and the app is dead.
+# $API_ORIGIN is a Netlify/Cloudflare environment variable. If the API lives on
+# the same domain (reverse-proxied), delete this rule instead.
+
+/api/*    $API_ORIGIN/api/:splat    200
+
+# SPA fallback — every deep link (/berita/slug, /warga/surat, /admin/*) would
+# otherwise return 404 on refresh or direct link.
+/*        /index.html               200

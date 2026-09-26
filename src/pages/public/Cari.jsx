@@ -8,7 +8,7 @@ import ServiceCard from '../../components/content/ServiceCard.jsx';
 const match = (text, q) => (text || '').toLowerCase().includes(q);
 
 export default function Cari() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const q = (params.get('q') || '').trim();
   const query = q.toLowerCase();
 
@@ -32,8 +32,22 @@ export default function Cari() {
         <span className="eyebrow text-brand">PENCARIAN</span>
         <h1>Hasil pencarian</h1>
         <p className="lead">Menampilkan hasil untuk {q ? <>“<strong>{q}</strong>”</> : 'semua konten'}.</p>
-        <form action="/cari" method="get" className="d-flex gap-2 flex-column flex-sm-row mt-3" style={{ maxWidth: 560 }}>
-          <input name="q" defaultValue={q} className="form-control form-control-lg" placeholder="Cari di seluruh situs…" aria-label="Cari di seluruh situs" />
+        {/* Client-side navigation, not a native GET form. <form action="/cari">
+           reloaded the whole document, discarding the content cache and
+           re-running every /api request on each search. */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const next = new FormData(e.currentTarget).get('q') || '';
+            setParams(next.trim() ? { q: next.trim() } : {}, { replace: true });
+          }}
+          className="d-flex gap-2 flex-column flex-sm-row mt-3"
+          style={{ maxWidth: 560 }}
+        >
+          {/* key={q}: the input is uncontrolled, so Back/Forward between two
+              /cari?q= values left the old text in the box while the results
+              showed the new query. Remounting on q change keeps them in sync. */}
+          <input key={q} name="q" defaultValue={q} className="form-control form-control-lg" placeholder="Cari di seluruh situs…" aria-label="Cari di seluruh situs" />
           <button className="btn btn-brand btn-lg flex-shrink-0" type="submit">
             Cari <AppIcon name="search" className="ms-1" />
           </button>
@@ -41,7 +55,7 @@ export default function Cari() {
       </div>
 
       {total === 0 && q ? (
-        <div className="empty-state">
+        <div className="empty-state" aria-live="polite">
           <div className="service-icon mx-auto"><AppIcon name="search" size={26} /></div>
           <h2 className="h5 mt-3">Tidak ada hasil</h2>
           <p className="text-muted mb-0">Coba kata kunci lain atau telusuri menu di atas.</p>

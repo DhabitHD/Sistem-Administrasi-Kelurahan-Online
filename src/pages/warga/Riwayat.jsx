@@ -2,13 +2,15 @@ import { Link } from 'react-router-dom';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import { useComplaints, useLetters } from '../../services/store.js';
+import AppAlert from '../../components/common/AppAlert.jsx';
 
 const fileCount = (c) => (c.photos?.length || (c.photo ? 1 : 0) || (c.laporan_fotos?.length || (c.laporan_foto ? 1 : 0)));
 const attachCount = (l) => (l.attachments?.length || 0);
 
 export default function Riwayat() {
-  const { items: complaints } = useComplaints();
-  const { items: letters } = useLetters();
+  const { items: complaints, error: cErr } = useComplaints();
+  const { items: letters, error: lErr } = useLetters();
+  const error = cErr || lErr;
   const items = [
     ...(complaints).map((c) => ({ kind: 'Pengaduan', icon: 'chat-left-text', id: c.id_code, title: c.title, createdAt: c.created_at, status: c.status, link: '/warga/pengaduan', files: fileCount(c) })),
     ...(letters).map((l) => ({ kind: 'Surat', icon: 'file-earmark-text', id: l.id_code, title: l.jenis || l.title, createdAt: l.created_at, status: l.status, link: '/warga/surat', files: attachCount(l) })),
@@ -24,7 +26,13 @@ export default function Riwayat() {
         </p>
       </div>
 
-      {items.length === 0 ? (
+      {error && (
+        <AppAlert type="danger">
+          Gagal memuat riwayat dari server ({error}). Data Anda aman — coba muat ulang halaman.
+        </AppAlert>
+      )}
+
+      {!error && (items.length === 0 ? (
         <div className="dashboard-card p-5 text-center">
           <div className="service-icon mx-auto"><AppIcon name="clock-history" /></div>
           <h2 className="h5 mt-3">Belum ada riwayat</h2>
@@ -54,7 +62,7 @@ export default function Riwayat() {
             </div>
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 }

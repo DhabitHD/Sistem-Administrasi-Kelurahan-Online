@@ -4,6 +4,7 @@ import { adminLetters, setItemStatus } from '../../services/store.js';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { AttachmentList } from '../../services/files.jsx';
+import AppModal from '../../components/common/AppModal.jsx';
 
 const statuses = ['DIAJUKAN', 'IN_PROGRESS', 'SIAP_DIAMBIL', 'CLOSED', 'DITOLAK'];
 const waLink = (wa) => (wa ? `https://wa.me/${String(wa).replace(/^0/, '62')}` : null);
@@ -18,7 +19,11 @@ export default function AdminSurat() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const refresh = () => adminLetters().then(setItems).catch(() => setItems([]));
+  const refresh = () =>
+    adminLetters()
+      .then((d) => { setItems(d); setErr(''); })
+      /* An empty list must mean "no letters submitted", not "the server is down". */
+      .catch((e) => { setItems([]); setErr(`Data surat gagal dimuat: ${e.message || 'periksa koneksi'}`); });
 
   useEffect(() => {
     refresh();
@@ -28,19 +33,28 @@ export default function AdminSurat() {
     const openId = location.state?.openId;
     if (!openId) return;
     const found = items.find((l) => l.id === openId);
-    if (found) setDetail(found);
+    /* items is still [] on the first run while the fetch is in flight. Clearing the
+       state here would drop the deep link from AdminDashboard before it can resolve.
+       Bail silently while still loading; once the list is in, also clear the state
+       on a miss so it does not linger for the rest of the session. */
+    if (!found) {
+      if (items.length > 0) navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+    setDetail(found);
     navigate(location.pathname, { replace: true, state: null });
-  }, [items]);
+  }, [items, location.state?.openId]);
 
   const change = async (id, status) => {
     setMsg(''); setErr('');
-    if (!window.confirm(`Ubah status ${id === detail?.id ? detail.id_code : id} menjadi ${status}?`)) {
+    const code = detail?.id_code || id;
+    if (!window.confirm(`Ubah status surat ${code} menjadi ${status}?`)) {
       refresh();
       return;
     }
     try {
       await setItemStatus('surat', id, status);
-      setMsg(`Status ${id} diubah menjadi ${status}.`);
+      setMsg(`Status surat ${code} diubah menjadi ${status}.`);
       setDetail((d) => (d && d.id === id ? { ...d, status } : d));
     } catch (e) {
       setErr(e.message || 'Gagal mengubah status.');
@@ -97,7 +111,10 @@ export default function AdminSurat() {
                 role="button"
                 tabIndex={0}
                 onClick={() => { setMsg(''); setErr(''); setDetail(l); }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMsg(''); setErr(''); setDetail(l); } }}
+                onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMsg(''); setErr(''); setDetail(l); }
+                }}
                 aria-label={`Detail ${l.id_code}`}
               >
                 <div className="d-flex justify-content-between align-items-start gap-3">
@@ -126,8 +143,7 @@ export default function AdminSurat() {
       )}
 
       {detail && (
-        <div className="ktp-lightbox" onClick={() => setDetail(null)} role="presentation">
-          <div className="ktp-lightbox-box" onClick={(e) => e.stopPropagation()}>
+        <AppModal onClose={() => setDetail(null)} label={`Detail surat ${detail.id_code}`}>
             <div className="d-flex justify-content-between align-items-center mb-2 gap-2">
               <div>
                 <h3 className="h5 mb-1">{detail.jenis || detail.title}</h3>
@@ -192,8 +208,7 @@ export default function AdminSurat() {
                 <span className="small text-muted">Data sudah diperiksa? Tandai status pengajuan.</span>
               </div>
             )}
-          </div>
-        </div>
+        </AppModal>
       )}
     </div>
   );

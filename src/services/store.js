@@ -46,38 +46,24 @@ export const deleteAdmin = (id) => api.delete(`/admin/admins/${id}`);
 export const trackVisit = () => api.post('/visits').catch(() => null);
 
 /* ── Hooks ── */
-export function useComplaints() {
+/* A failed fetch must not render as an empty list: residents would think their
+   complaints or letters vanished. `error` is surfaced so pages can say so. */
+function useList(fetcher) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   useEffect(() => {
-    listComplaints()
-      .then(setItems)
-      .catch(() => setItems([]))
+    fetcher()
+      .then((data) => {
+        setItems(data);
+        setError(null);
+      })
+      .catch((e) => setError(e?.message || 'Gagal memuat data'))
       .finally(() => setLoading(false));
   }, []);
-  return { items, loading, reload: () => listComplaints().then(setItems) };
+  return { items, loading, error, reload: () => fetcher().then(setItems) };
 }
 
-export function useLetters() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    listLetters()
-      .then(setItems)
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
-  }, []);
-  return { items, loading, reload: () => listLetters().then(setItems) };
-}
-
-export function useNotifications() {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    listNotifications()
-      .then(setItems)
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
-  }, []);
-  return { items, loading, reload: () => listNotifications().then(setItems) };
-}
+export const useComplaints = () => useList(listComplaints);
+export const useLetters = () => useList(listLetters);
+export const useNotifications = () => useList(listNotifications);

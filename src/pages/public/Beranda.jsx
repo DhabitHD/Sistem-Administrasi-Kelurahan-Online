@@ -9,6 +9,7 @@ import KegiatanPreview from '../../components/home/KegiatanPreview.jsx';
 import VideoPreview from '../../components/home/VideoPreview.jsx';
 import ComplaintHighlight from '../../components/home/ComplaintHighlight.jsx';
 import { useProfil } from '../../services/contentStore.js';
+import { telHref } from '../../services/files.jsx';
 
 export default function Beranda() {
   const c = useProfil();
@@ -53,9 +54,11 @@ export default function Beranda() {
                     {telp} · {jam}
                   </p>
                 </div>
-                <a href={`tel:+${telp.replace(/\D/g, '')}`} className="btn btn-brand">
-                  Hubungi
-                </a>
+                {telHref(telp) && (
+                  <a href={telHref(telp)} className="btn btn-brand">
+                    Hubungi
+                  </a>
+                )}
               </div>
             </div>
           </div>

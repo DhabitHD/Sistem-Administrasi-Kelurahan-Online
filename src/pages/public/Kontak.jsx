@@ -1,5 +1,6 @@
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { useProfil } from '../../services/contentStore.js';
+import { telHref } from '../../services/files.jsx';
 const mapSrc =
   'https://www.google.com/maps?q=-7.8506564,112.0434437&hl=id&z=17&output=embed';
 
@@ -29,7 +30,9 @@ export default function Kontak() {
             </div>
             <div className="d-flex gap-3 py-3 border-bottom">
               <div className="doc-icon flex-shrink-0"><AppIcon name="telephone-fill" /></div>
-              <div><strong className="d-block">Telepon</strong><a href={`tel:+${telp.replace(/\D/g, '')}`} className="text-brand text-decoration-none">{telp}</a></div>
+              <div><strong className="d-block">Telepon</strong>{telHref(telp)
+                ? <a href={telHref(telp)} className="text-brand text-decoration-none">{telp}</a>
+                : <span className="text-muted">{telp}</span>}</div>
             </div>
             <div className="d-flex gap-3 py-3 border-bottom">
               <div className="doc-icon flex-shrink-0"><AppIcon name="envelope-fill" /></div>

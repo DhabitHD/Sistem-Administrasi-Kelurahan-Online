@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useDokumen, addItem, updateItem, deleteItem, fmtDate } from '../../services/contentStore.js';
 import { uploadFile } from '../../services/api.js';
+import { safeFileUrl } from '../../services/files.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
 
@@ -19,7 +20,8 @@ export default function AdminDokumen() {
   const reset = () => { setEditing(null); setForm(empty); setError(''); setSuccess(''); };
 
   const onFile = async (e) => {
-    const file = e.target.files?.[0];
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
     setError('');
     try {
@@ -27,7 +29,10 @@ export default function AdminDokumen() {
       setForm((f) => ({ ...f, file: path }));
     } catch (err) {
       setError(err.message || 'Gagal mengunggah file.');
-      e.target.value = '';
+    } finally {
+      /* Reset on success too. Leaving the value in place means re-picking the same
+         file fires no change event, so the admin could not replace it. */
+      input.value = '';
     }
   };
 
@@ -123,9 +128,11 @@ export default function AdminDokumen() {
               <div className="mb-3">
                 <label className="form-label fw-semibold" htmlFor="d-file">File dokumen (PDF/Word, opsional)</label>
                 <input id="d-file" type="file" accept=".pdf,.doc,.docx,image/*" className="form-control" onChange={onFile} />
-                {form.file && (
+                {form.file && safeFileUrl(form.file) && (
                   <div className="d-flex align-items-center gap-2 mt-2">
-                    <a href={form.file} target="_blank" rel="noreferrer"><AppIcon name="file-text" size={16} /> {form.file.split('/').pop()}</a>
+                    <a href={safeFileUrl(form.file)} target="_blank" rel="noreferrer" className="text-truncate">
+                      <AppIcon name="file-text" size={16} /> {form.file.split('/').pop()}
+                    </a>
                   </div>
                 )}
               </div>
@@ -150,22 +157,26 @@ export default function AdminDokumen() {
             <div className="row g-3">
               {items.map((it) => (
                 <div className="col-md-6 d-flex" key={it.slug}>
-                  <div className="dashboard-card p-3 w-100">
+                  <div className="dashboard-card p-3 w-100 d-flex flex-column">
                     <div className="d-flex gap-3 align-items-start">
                       <div className="doc-icon flex-shrink-0"><AppIcon name={it.icon || 'file-earmark-text'} size={18} /></div>
-                      <div className="flex-grow-1">
+                      <div className="flex-grow-1" style={{ minWidth: 0 }}>
                         <small className="text-brand fw-semibold d-block">{fmt(it.category)} · {it.date}</small>
                         <h3 className="h6 mt-1 mb-0">{it.title}</h3>
-                        {it.file && <small className="text-muted d-block mt-1">File: {it.file.split('/').pop()}</small>}
+                        {it.file && <small className="text-muted d-block mt-1 text-truncate">File: {it.file.split('/').pop()}</small>}
                       </div>
-                      <div className="d-flex gap-1 flex-shrink-0">
-                        <button className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} title="Ubah">
-                          <AppIcon name="pencil" size={15} />
-                        </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} title="Hapus">
-                          <AppIcon name="trash" size={15} />
-                        </button>
-                      </div>
+                    </div>
+                    {/* Own row: inline, these buttons squeezed the title into ~135px
+                        and sat in the top-right corner. Matches AdminPengaduan.
+                        text-truncate above stops an unbreakable filename token from
+                        overflowing the card. */}
+                    <div className="mt-3 pt-3 border-top d-flex gap-2 justify-content-end flex-shrink-0">
+                      <button type="button" aria-label="Ubah" title="Ubah" className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)}>
+                        <AppIcon name="pencil" size={15} />
+                      </button>
+                      <button type="button" aria-label="Hapus" title="Hapus" className="btn btn-sm btn-outline-danger" onClick={() => remove(it)}>
+                        <AppIcon name="trash" size={15} />
+                      </button>
                     </div>
                   </div>
                 </div>

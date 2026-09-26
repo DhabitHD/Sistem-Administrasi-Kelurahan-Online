@@ -19,7 +19,7 @@ export default function Profil() {
 
       <div className="row g-5 align-items-start">
         <div className="col-lg-7">
-          <img src="/assets/placeholders/struktur-pemerintahan.jpg" className="img-fluid rounded-4 mb-4 w-100" alt="Ilustrasi Kelurahan Betet" style={{maxHeight:420,objectFit:'cover'}} />
+          <img src="/assets/placeholders/struktur-pemerintahan.jpg" className="img-fluid rounded-4 mb-4 w-100" alt="Ilustrasi Kelurahan Betet" loading="lazy" decoding="async" style={{maxHeight:420,objectFit:'cover'}} />
           <span className="eyebrow">TENTANG KELURAHAN</span>
           <h2 className="h2 mt-2">Informasi publik dalam satu tempat</h2>
           <p className="lh-lg">Kelurahan Betet berada di Kecamatan Pesantren, Kota Kediri, Jawa Timur. Website ini menggabungkan informasi publik, berita, pengumuman, pelayanan, dan kanal komunikasi agar warga lebih mudah memperoleh informasi.</p>

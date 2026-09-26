@@ -1,5 +1,6 @@
 import { useVideo } from '../../services/contentStore.js';
-import { isYoutube, embedFromUrl } from '../../services/video.js';
+import { embedFromUrl } from '../../services/video.js';
+import { safeFileUrl } from '../../services/files.jsx';
 import RevealOnScroll from '../common/RevealOnScroll.jsx';
 
 export default function VideoPreview() {
@@ -18,27 +19,37 @@ export default function VideoPreview() {
         </div>
 
         <div className="row g-4 mt-1">
-          {videos.map((v) => (
+          {videos.map((v) => {
+            const embed = embedFromUrl(v.video);
+            const file = safeFileUrl(v.video);
+            return (
             <div className="col-md-6 col-lg-6" key={v.slug}>
               <div className="dashboard-card p-3 h-100">
-                {isYoutube(v.video) ? (
+                {embed ? (
                   <iframe
                     title={v.title}
-                    src={embedFromUrl(v.video)}
+                    src={embed}
                     className="w-100 rounded"
                     style={{ aspectRatio: '16 / 9' }}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     loading="lazy"
                   ></iframe>
+                ) : file ? (
+                  <video src={file} controls className="w-100 rounded" style={{ aspectRatio: '16 / 9' }}></video>
                 ) : (
-                  <video src={v.video} controls className="w-100 rounded" style={{ aspectRatio: '16 / 9' }}></video>
+                  /* Unrecognised URL: render the caption only rather than pointing an
+                     iframe or media element at whatever the admin row happens to hold. */
+                  <div className="w-100 rounded d-flex align-items-center justify-content-center text-muted small" style={{ aspectRatio: '16 / 9', background: 'var(--color-surface-muted, #f1f5f9)' }}>
+                    Tautan video tidak dapat ditampilkan
+                  </div>
                 )}
                 <h3 className="h5 mt-3 mb-1">{v.title}</h3>
                 {v.desc && <p className="text-muted small mb-0">{v.desc}</p>}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       </RevealOnScroll>

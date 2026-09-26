@@ -17,15 +17,20 @@ const empty = { image: presets[0], kicker: '', title_before: '', title_span: '',
 export default function AdminHero() {
   const [slides, setSlides] = useState([]);
   const [editing, setEditing] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     api
       .get('/admin/hero')
-      .then(setSlides)
-      .catch(() => setSlides([]));
+      .then((d) => { setSlides(d); setLoadError(''); })
+      .catch((e) => { setSlides([]); setLoadError(`Data slide gagal dimuat: ${e.message || 'periksa koneksi'}`); });
   }, []);
 
-  const refresh = () => api.get('/admin/hero').then(setSlides).catch(() => {});
+  const refresh = () =>
+    api
+      .get('/admin/hero')
+      .then((d) => { setSlides(d); setLoadError(''); })
+      .catch((e) => { setSlides([]); setLoadError(`Data slide gagal dimuat: ${e.message || 'periksa koneksi'}`); });
   const [form, setForm] = useState(empty);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -164,7 +169,8 @@ export default function AdminHero() {
                   </div>
                 </div>
               </div>
-              {error && <AppAlert type="danger">{error}</AppAlert>}
+              {loadError && <AppAlert type="danger">{loadError}</AppAlert>}
+          {error && <AppAlert type="danger">{error}</AppAlert>}
               {success && <AppAlert type="success">{success}</AppAlert>}
               <div className="d-flex gap-2">
                 <button className="btn btn-brand" type="submit" disabled={saving}>{saving ? 'Menyimpan…' : editing ? 'Simpan Perubahan' : 'Tambah Slide'}</button>
@@ -176,8 +182,9 @@ export default function AdminHero() {
 
         <div className="col-lg-6">
           {slides.length === 0 ? (
-            <div className="dashboard-card p-5 text-center"><p className="text-muted mb-0">Belum ada slide. Beranda akan memakai slide bawaan.</p></div>
+            <div className="dashboard-card p-5 text-center"><p className="text-muted mb-0">{loadError ? 'Data tidak dapat ditampilkan.' : 'Belum ada slide. Beranda akan memakai slide bawaan.'}</p></div>
           ) : (
+
             <div className="row g-3">
               {[...slides].sort((a, b) => (a.order || 0) - (b.order || 0)).map((it) => (
                 <div className="col-12 d-flex" key={it.id}>
@@ -190,10 +197,10 @@ export default function AdminHero() {
                         {!it.is_active && <small className="text-danger">Slide dimatikan, tak tampil di beranda.</small>}
                       </div>
                       <div className="d-flex gap-1 flex-shrink-0">
-                        <button className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} title="Ubah">
+                        <button type="button" aria-label="Ubah" title="Ubah" className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} >
                           <AppIcon name="pencil" size={15} />
                         </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} title="Hapus">
+                        <button type="button" aria-label="Hapus" title="Hapus" className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} >
                           <AppIcon name="trash" size={15} />
                         </button>
                       </div>

@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import WargaSidebar from '../components/layout/WargaSidebar.jsx';
 import AppIcon from '../components/common/AppIcon.jsx';
+import ContentErrorBanner from '../components/common/ContentErrorBanner.jsx';
 
 export default function WargaLayout() {
   return (
@@ -16,6 +17,7 @@ export default function WargaLayout() {
           </div>
         </header>
         <main className="p-3 p-lg-4">
+          <ContentErrorBanner />
           <Outlet />
         </main>
       </div>

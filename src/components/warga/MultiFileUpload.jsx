@@ -18,7 +18,6 @@ export default function MultiFileUpload({
   const inputRef = useRef(null);
 
   const addFiles = (files) => {
-    onError?.('');
     const list = Array.from(files);
     if (value.length + list.length > maxFiles) {
       onError?.(`Maksimal ${maxFiles} file.`);
@@ -47,7 +46,18 @@ export default function MultiFileUpload({
         reader.readAsDataURL(f);
       }))
     )
-      .then((items) => onChange([...value, ...items]))
+      /* Use a functional update: two rapid file picks share the same render, and
+         onChange([...value, ...items]) in the second closes over the stale `value`
+         from before the first. Using (prev) => ... lets the second append to the
+         first's result rather than overwriting it. */
+      .then((items) => {
+        /* Clear the previous complaint only once this selection actually
+           succeeded. Clearing at the top of addFiles() wiped unrelated form
+           errors (PengaduanBaru wires onError straight to its error state) the
+           moment the resident picked any file. */
+        onError?.('');
+        onChange((prev) => [...(prev ?? []), ...items]);
+      })
       .catch(() => onError?.('Gagal membaca file.'))
       .finally(() => { if (inputRef.current) inputRef.current.value = ''; });
   };

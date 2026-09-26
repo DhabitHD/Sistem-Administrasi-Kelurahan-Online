@@ -1,14 +1,26 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import AppIcon from '../../components/common/AppIcon.jsx';
-import { useLayanan } from '../../services/contentStore.js';
+import { useLayanan, useContentLoaded } from '../../services/contentStore.js';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 
 export default function LayananDetail() {
   const { slug } = useParams();
   const layanan = useLayanan();
+  const loaded = useContentLoaded('layanan');
   const item = layanan.find((x) => x.slug === slug);
   const { isLoggedIn } = useAuth();
   const nav = useNavigate();
+
+  if (!item && !loaded) {
+    return (
+      <div className="container py-5" role="status" aria-live="polite">
+        <div className="panel-card p-5 text-center">
+          <div className="spinner-border text-brand" />
+          <p className="text-muted small mt-3 mb-0">Memuat layanan…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!item) {
     return (
@@ -56,12 +68,16 @@ export default function LayananDetail() {
               alt={item.name}
             />
 
-            <h2 className="h4 mt-4">Persyaratan</h2>
-            <ul>
-              {item.requirements.map((req) => (
-                <li key={req}>{req}</li>
-              ))}
-            </ul>
+            {(item.requirements || []).length > 0 && (
+              <>
+                <h2 className="h4 mt-4">Persyaratan</h2>
+                <ul>
+                  {(item.requirements || []).map((req) => (
+                    <li key={req}>{req}</li>
+                  ))}
+                </ul>
+              </>
+            )}
 
             <h2 className="h4 mt-4">Proses</h2>
             <p>{item.process}</p>

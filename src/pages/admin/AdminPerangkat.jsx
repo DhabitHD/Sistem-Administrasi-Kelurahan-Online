@@ -147,10 +147,10 @@ export default function AdminPerangkat() {
                         <h3 className="h6 mt-1 mb-0">{it.name}</h3>
                       </div>
                       <div className="d-flex gap-1 flex-shrink-0">
-                        <button className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} title="Ubah">
+                        <button type="button" aria-label="Ubah" title="Ubah" className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} >
                           <AppIcon name="pencil" size={15} />
                         </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} title="Hapus">
+                        <button type="button" aria-label="Hapus" title="Hapus" className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} >
                           <AppIcon name="trash" size={15} />
                         </button>
                       </div>

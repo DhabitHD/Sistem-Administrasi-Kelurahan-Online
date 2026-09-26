@@ -20,10 +20,17 @@ export default function TugasLaporan() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
+    /* Guard against a late response overwriting a newer one: navigating from
+       /tugas/AAA to /tugas/BBB quickly used to render complaint A under URL B. */
+    let on = true;
+    setItem(null);
+    setError('');
+    setLoading(true);
     fetchTugas(token)
-      .then(setItem)
-      .catch((e) => setError(e.message || 'Tautan tidak valid.'))
-      .finally(() => setLoading(false));
+      .then((d) => { if (on) setItem(d); })
+      .catch((e) => { if (on) setError(e.message || 'Tautan tidak valid.'); })
+      .finally(() => { if (on) setLoading(false); });
+    return () => { on = false; };
   }, [token]);
 
   const submit = async (e) => {

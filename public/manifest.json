@@ -1,0 +1,23 @@
+{
+  "id": "/",
+  "name": "Kelurahan Betet — Kota Kediri",
+  "short_name": "Betet",
+  "description": "Portal informasi dan pelayanan publik Kelurahan Betet, Kecamatan Pesantren, Kota Kediri.",
+  "lang": "id",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#2563EB",
+  "categories": ["government", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/placeholders/logo-kelurahan.png",
+      "sizes": "447x447",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

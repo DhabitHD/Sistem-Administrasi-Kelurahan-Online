@@ -7,6 +7,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [complaints, setComplaints] = useState([]);
   const [letters, setLetters] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     Promise.all([fetchStats(), adminComplaints(), adminLetters()])
@@ -14,14 +15,18 @@ export default function AdminDashboard() {
         setStats(s);
         setComplaints(c);
         setLetters(l);
+        setError('');
       })
-      .catch(() => {});
+      /* A silent catch here rendered 0/0/0/0 with no explanation, which reads as
+         "the kelurahan has no residents and no cases" rather than "the API is
+         unreachable". */
+      .catch((e) => setError(`Ringkasan gagal dimuat: ${e?.message || 'periksa koneksi ke server'}`));
   }, []);
 
-  const warga = stats?.warga_total || 0;
-  const pending = stats?.warga_pending || 0;
-  const openComplaints = stats?.pengaduan_aktif || 0;
-  const openLetters = stats?.surat_aktif || 0;
+  const warga = stats?.warga_total ?? null;
+  const pending = stats?.warga_pending ?? null;
+  const openComplaints = stats?.pengaduan_aktif ?? null;
+  const openLetters = stats?.surat_aktif ?? null;
 
   const statCards = [
     ['Warga Terdaftar', warga, 'people', '/admin/warga', 'stat-grad-brand'],
@@ -41,12 +46,19 @@ export default function AdminDashboard() {
         </p>
       </div>
 
+      {error && (
+        <div className="alert alert-danger d-flex align-items-center gap-2" role="alert">
+          <AppIcon name="exclamation-circle" size={18} />
+          <span>{error} Angka di bawah tidak dapat dipercaya.</span>
+        </div>
+      )}
+
       <div className="row g-4 mb-4">
         {statCards.map(([label, value, icon, to, grad]) => (
           <div className="col-sm-6 col-lg-3" key={label}>
             <Link to={to} className={`stat-card ${grad} p-4 d-block text-decoration-none h-100`}>
               <span className="stat-icon"><AppIcon name={icon} size={20} /></span>
-              <div className="stat-card__val mb-0">{value}</div>
+              <div className="stat-card__val mb-0">{value ?? '—'}</div>
               <span className="stat-card__label">{label}</span>
             </Link>
           </div>

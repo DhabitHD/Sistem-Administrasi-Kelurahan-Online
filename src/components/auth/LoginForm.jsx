@@ -74,12 +74,14 @@ export default function LoginForm() {
 
       {error && <AppAlert type="danger">{error}</AppAlert>}
 
-<div className="alert alert-brand-soft small py-2 px-3">
-        <span className="d-block mb-1"><AppIcon name="info-circle" className="me-1" />Warga demo:</span>
-        <span><code>3571********1234</code>&nbsp;·&nbsp;<code>demo1234</code></span>
-        <span className="d-block mt-1"><AppIcon name="info-circle" className="me-1" />Admin:</span>
-        <span><code>admin@betet.id</code>&nbsp;·&nbsp;<code>admin1234</code></span>
-      </div>
+      {import.meta.env.DEV && (
+        <div className="alert alert-brand-soft small py-2 px-3">
+          <span className="d-block mb-1"><AppIcon name="info-circle" className="me-1" />Warga demo:</span>
+          <span><code>3571********1234</code>&nbsp;·&nbsp;<code>demo1234</code></span>
+          <span className="d-block mt-1"><AppIcon name="info-circle" className="me-1" />Admin:</span>
+          <span><code>admin@betet.id</code>&nbsp;·&nbsp;<code>admin1234</code></span>
+        </div>
+      )}
 
       <button className="btn btn-brand btn-lg w-100" type="submit" disabled={submitting}>
         {submitting ? 'Memproses…' : 'Masuk'} <AppIcon name="arrow-right" className="ms-1" />

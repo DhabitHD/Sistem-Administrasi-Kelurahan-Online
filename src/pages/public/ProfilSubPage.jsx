@@ -160,8 +160,9 @@ export default function ProfilSubPage() {
                 src="/assets/placeholders/struktur-pemerintahan.jpg"
                 alt="Ilustrasi sejarah Kelurahan Betet"
                 className="img-fluid rounded-4 w-100"
-                style={{ maxHeight: 420, objectFit: 'cover' }}
                 loading="lazy"
+                decoding="async"
+                style={{ maxHeight: 420, objectFit: 'cover' }}
               />
               <figcaption className="small text-muted mt-2">
                 Ilustrasi — ganti dengan foto/arsip sejarah asli saat tersedia.
@@ -277,8 +278,9 @@ export default function ProfilSubPage() {
                 src={profil?.struktur_image || '/assets/placeholders/struktur-pemerintahan.jpg'}
                 alt="Struktur organisasi Kelurahan Betet"
                 className="img-fluid rounded-3 mb-4 w-100"
-                style={{ maxHeight: 420, objectFit: 'cover' }}
                 loading="lazy"
+                decoding="async"
+                style={{ maxHeight: 420, objectFit: 'cover' }}
               />
               <h3 className="h5 mb-3">Perangkat Kelurahan</h3>
               {perangkatItems.length === 0 ? (

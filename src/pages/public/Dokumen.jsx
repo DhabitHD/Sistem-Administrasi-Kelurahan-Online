@@ -1,26 +1,7 @@
 import { Link } from 'react-router-dom';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { useDokumen } from '../../services/contentStore.js';
-
-const downloadText = (doc) => {
-  const body = [
-    doc.title,
-    'KELURAHAN BETET — KOTA KEDIRI',
-    '=================================',
-    doc.desc,
-    '',
-    ...(Array.isArray(doc.content) ? doc.content : []),
-    '',
-    'Generated: ' + new Date().toLocaleString('id-ID'),
-  ].join('\n');
-  const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${doc.slug}.txt`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-};
+import { safeFileUrl } from '../../services/files.jsx';
 
 export default function Dokumen() {
   const items = useDokumen();
@@ -50,14 +31,18 @@ export default function Dokumen() {
                       {doc.content.map((p, i) => <p key={i} className="mb-2">{p}</p>)}
                     </div>
                   )}
-                  {doc.file ? (
-                    <a href={doc.file} download target="_blank" rel="noreferrer" className="btn btn-sm btn-brand">
+                  {safeFileUrl(doc.file) ? (
+                    /* No target="_blank" here: it defeats the download attribute for
+                       cross-origin files, so the button labelled "Unduh" just opened
+                       a tab. Same-origin files download; anything else still opens
+                       the document, which is the useful fallback. */
+                    <a href={safeFileUrl(doc.file)} download rel="noreferrer" className="btn btn-sm btn-brand">
                       <AppIcon name="download" className="me-1" /> Unduh Dokumen
                     </a>
                   ) : (
-                    <button type="button" className="btn btn-sm btn-brand" onClick={() => downloadText(doc)}>
-                      <AppIcon name="download" className="me-1" /> Unduh Dokumen
-                    </button>
+                    <span className="small text-muted">
+                      <AppIcon name="clock" className="me-1" /> Berkas belum tersedia untuk diunduh
+                    </span>
                   )}
                 </div>
               </div>

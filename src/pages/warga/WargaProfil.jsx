@@ -13,6 +13,7 @@ export default function WargaProfil() {
   const [avatar, setAvatar] = useState(user.avatar || '');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const onAvatar = (e) => {
     const file = e.target.files?.[0];
@@ -35,6 +36,7 @@ export default function WargaProfil() {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     setError(''); setSuccess('');
     if (!/^\d{9,15}$/.test(form.wa)) {
       setError('Nomor WhatsApp tidak valid. Gunakan angka tanpa spasi.');
@@ -48,13 +50,19 @@ export default function WargaProfil() {
       setError('Alamat wajib diisi.');
       return;
     }
+    setSaving(true);
     try {
       const avatarPath = avatar && avatar.startsWith('data:') ? await uploadDataUrl(avatar) : avatar;
       const updated = await updateProfile({ ...form, avatar: avatarPath });
       updateUser(updated);
+      /* Keep the stored path, not the dataURL, otherwise the next save re-uploads
+         the same photo and orphans the previous file on the server. */
+      setAvatar(avatarPath || '');
       setSuccess('Data kontak berhasil diperbarui.');
     } catch (err) {
       setError(err.message || 'Gagal memperbarui profil.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -82,7 +90,10 @@ export default function WargaProfil() {
                 <span className="profile-avatar">{avatar ? <img src={avatar} alt="Foto profil" /> : avatarInitial(user.name)}</span>
                 <label className="profile-avatar-edit" title="Ganti foto profil">
                   <AppIcon name="camera" size={14} />
-                  <input type="file" accept="image/*" className="d-none" onChange={onAvatar} aria-label="Ganti foto profil" />
+                  {/* Not className="d-none": a display:none input is not focusable,
+                      so keyboard and screen-reader users could not change their
+                      avatar at all. Visually hidden but still in the tab order. */}
+                  <input type="file" accept="image/*" className="visually-hidden-focusable" onChange={onAvatar} aria-label="Ganti foto profil" />
                 </label>
               </div>
               <div>
@@ -117,7 +128,9 @@ export default function WargaProfil() {
               </div>
               {error && <AppAlert type="danger">{error}</AppAlert>}
               {success && <AppAlert type="success">{success}</AppAlert>}
-              <button className="btn btn-brand" type="submit">Simpan Perubahan</button>
+              <button className="btn btn-brand" type="submit" disabled={saving}>
+                {saving ? 'Menyimpan…' : 'Simpan Perubahan'}
+              </button>
             </form>
           </div>
         </div>

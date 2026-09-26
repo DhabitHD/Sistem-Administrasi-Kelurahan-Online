@@ -3,6 +3,7 @@ import { listAdmins, createAdmin, updateAdmin, deleteAdmin, uploadDataUrl } from
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
+import AppModal from '../../components/common/AppModal.jsx';
 
 const empty = { nama: '', email: '', password: '', confirm: '', wa: '', avatar: '' };
 const editEmpty = { id: null, nama: '', wa: '', password: '', confirm: '', avatar: '' };
@@ -18,7 +19,10 @@ export default function AdminAdmins() {
   const [editing, setEditing] = useState(null);
   const { user } = useAuth();
 
-  const refresh = () => listAdmins().then(setItems).catch(() => setItems([]));
+  const refresh = () =>
+    listAdmins()
+      .then((d) => { setItems(d); setError(''); })
+      .catch((e) => { setItems([]); setError(`Data admin gagal dimuat: ${e.message || 'periksa koneksi'}`); });
   useEffect(() => { refresh(); }, []);
 
   const submit = async (e) => {
@@ -216,7 +220,7 @@ export default function AdminAdmins() {
                     <small className="text-muted d-block">{it.email} {it.wa ? `· WA ${it.wa}` : ''}</small>
                   </div>
                   <div className="d-flex gap-1 flex-shrink-0">
-                    <button className="btn btn-sm btn-outline-brand" onClick={() => openEdit(it)} title="Ubah">
+                    <button type="button" aria-label="Ubah" title="Ubah" className="btn btn-sm btn-outline-brand" onClick={() => openEdit(it)} >
                       <AppIcon name="pencil" size={14} />
                     </button>
                     <button className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} disabled={it.id === user?.id}>
@@ -231,8 +235,7 @@ export default function AdminAdmins() {
       </div>
 
       {editing && (
-        <div className="ktp-lightbox" onClick={() => !saving && setEditing(null)} role="presentation">
-          <div className="ktp-lightbox-box" onClick={(e) => e.stopPropagation()}>
+        <AppModal onClose={() => !saving && setEditing(null)} label={`Ubah admin ${editing.name}`}>
             <div className="d-flex justify-content-between align-items-center mb-3 gap-2">
               <div>
                 <strong>Ubah Admin</strong>
@@ -267,8 +270,7 @@ export default function AdminAdmins() {
             <button className="btn btn-brand w-100" type="button" disabled={saving} onClick={submitEdit}>
               {saving ? 'Menyimpan…' : 'Simpan Perubahan'}
             </button>
-          </div>
-        </div>
+        </AppModal>
       )}
     </div>
   );

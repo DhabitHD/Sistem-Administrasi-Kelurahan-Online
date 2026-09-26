@@ -171,6 +171,14 @@ Catatan status:
 2. `npm run build` → hasil di `dist/`.
 3. Serve `dist/` sebagai static site; pastikan rute `/storage/uploads/*` dari backend tersaji (foto KTP, avatar, bukti pengaduan).
 4. Atur rewrite SPA: semua rute tak dikenal arahkan ke `index.html`.
+5. **Atur rewrite `/api` dengan urutan benar.** Vercel (`vercel.json`) dan Netlify/Cloudflare (`public/_redirects`) sudah punya aturan `/api/*` di atas catch-all SPA, dan keduanya memakai env var `$API_ORIGIN` (tanpa `https://`, tanpa garis bawah akhir):
+
+   ```
+   API_ORIGIN=https://api.kelurahan-betet.go.id
+   ```
+
+   Kalau API di-reverse-proxy di domain yang sama, hapus saja aturan `/api/*` — cukup sisakan catch-all. Kalau tidak, `/api/*` tidak cocok dengan file statis dan jatuh ke `index.html`, sehingga setiap request axios menerima HTML dan seluruh portal mati.
+6. Kalau API berada di origin berbeda, tambahkan origin tersebut ke `connect-src` di ketiga file header (`public/.htaccess`, `public/_headers`, `vercel.json`) — default-nya `connect-src 'self'` akan memblokir semua request.
 
 ## Push ke GitHub
 

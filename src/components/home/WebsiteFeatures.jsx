@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import AppIcon from '../common/AppIcon.jsx';
 import RevealOnScroll from '../common/RevealOnScroll.jsx';
 import { useVideo } from '../../services/contentStore.js';
+import { safeUrl } from '../../services/files.jsx';
 
 const docs = [
   ['file-earmark-text', 'Profil Kelurahan Betet', 'Dokumen profil untuk mengenal wilayah dan layanan kelurahan.'],
@@ -16,7 +17,10 @@ export default function WebsiteFeatures() {
   const [picker, setPicker] = useState(false);
   const play = (v) => {
     setPicker(false);
-    if (v) window.open(v.video, '_blank', 'noopener');
+    /* v.video is admin-entered free text. window.open('javascript:...') would run in
+       our own origin, so refuse anything that is not plain http(s). */
+    const href = safeUrl(v?.video);
+    if (href) window.open(href, '_blank', 'noopener,noreferrer');
   };
   return (
     <>
@@ -37,7 +41,7 @@ export default function WebsiteFeatures() {
             <div className="col-lg-5">
               <RevealOnScroll className="h-100">
                 <div className="feature-card h-100 p-0 overflow-hidden">
-                  <img src="/assets/placeholders/struktur-pemerintahan.jpg" alt="Ilustrasi struktur pemerintahan" className="w-100" style={{height:'220px',objectFit:'cover'}} />
+                  <img src="/assets/placeholders/struktur-pemerintahan.jpg" alt="Ilustrasi struktur pemerintahan" className="w-100" loading="lazy" decoding="async" style={{height:'220px',objectFit:'cover'}} />
                   <div className="p-4">
                     <span className="eyebrow">PEMERINTAHAN</span>
                     <h3 className="h4 mt-2">Struktur organisasi yang mudah dipahami</h3>

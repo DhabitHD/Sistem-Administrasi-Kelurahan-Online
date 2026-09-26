@@ -10,15 +10,20 @@ const empty = { title: '', video: '', desc: '', is_active: true, order: 1 };
 export default function AdminVideo() {
   const [items, setItems] = useState([]);
   const [editing, setEditing] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     api
       .get('/admin/video')
-      .then(setItems)
-      .catch(() => setItems([]));
+      .then((d) => { setItems(d); setLoadError(''); })
+      .catch((e) => { setItems([]); setLoadError(`Data video gagal dimuat: ${e.message || 'periksa koneksi'}`); });
   }, []);
 
-  const refresh = () => api.get('/admin/video').then(setItems).catch(() => {});
+  const refresh = () =>
+    api
+      .get('/admin/video')
+      .then((d) => { setItems(d); setLoadError(''); })
+      .catch((e) => { setItems([]); setLoadError(`Data video gagal dimuat: ${e.message || 'periksa koneksi'}`); });
   const [form, setForm] = useState(empty);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -143,7 +148,8 @@ export default function AdminVideo() {
                   )}
                 </div>
               )}
-              {error && <AppAlert type="danger">{error}</AppAlert>}
+              {loadError && <AppAlert type="danger">{loadError}</AppAlert>}
+          {error && <AppAlert type="danger">{error}</AppAlert>}
               {success && <AppAlert type="success">{success}</AppAlert>}
               <div className="d-flex gap-2">
                 <button className="btn btn-brand" type="submit" disabled={saving}>{saving ? 'Menyimpan…' : editing ? 'Simpan Perubahan' : 'Tambah Video'}</button>
@@ -155,7 +161,7 @@ export default function AdminVideo() {
 
         <div className="col-lg-7">
           {sorted.length === 0 ? (
-            <div className="dashboard-card p-5 text-center"><p className="text-muted mb-0">Belum ada video.</p></div>
+            <div className="dashboard-card p-5 text-center"><p className="text-muted mb-0">{loadError ? 'Data tidak dapat ditampilkan.' : 'Belum ada video.'}</p></div>
           ) : (
             <div className="row g-3">
               {sorted.map((it) => (
@@ -182,10 +188,10 @@ export default function AdminVideo() {
                         {it.desc && <small className="text-muted d-block mt-1">{it.desc}</small>}
                       </div>
                       <div className="d-flex gap-1 flex-shrink-0">
-                        <button className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} title="Ubah">
+                        <button type="button" aria-label="Ubah" title="Ubah" className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} >
                           <AppIcon name="pencil" size={15} />
                         </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} title="Hapus">
+                        <button type="button" aria-label="Hapus" title="Hapus" className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} >
                           <AppIcon name="trash" size={15} />
                         </button>
                       </div>

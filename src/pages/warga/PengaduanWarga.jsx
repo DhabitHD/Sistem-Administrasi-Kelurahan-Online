@@ -5,13 +5,15 @@ import StatusBadge from '../../components/common/StatusBadge.jsx';
 import StatusTimeline from '../../components/common/StatusTimeline.jsx';
 import { useComplaints } from '../../services/store.js';
 import { AttachmentList, safeUrl } from '../../services/files.jsx';
+import AppModal from '../../components/common/AppModal.jsx';
+import AppAlert from '../../components/common/AppAlert.jsx';
 
 const fmt = (n) => String(n ?? 0).padStart(2, '0');
 
 export default function PengaduanWarga() {
   const [open, setOpen] = useState(null);
   const [preview, setPreview] = useState(null);
-  const { items: complaints } = useComplaints();
+  const { items: complaints, error } = useComplaints();
 
   return (
     <div className="container-fluid">
@@ -26,7 +28,13 @@ export default function PengaduanWarga() {
         </Link>
       </div>
 
-      {complaints.length === 0 ? (
+      {error && (
+        <AppAlert type="danger">
+          Gagal memuat pengaduan dari server ({error}). Data Anda aman — coba muat ulang halaman.
+        </AppAlert>
+      )}
+
+      {!error && (complaints.length === 0 ? (
         <div className="dashboard-card p-5 text-center">
           <div className="service-icon mx-auto"><AppIcon name="inbox" /></div>
           <h2 className="h5 mt-3">Belum ada pengaduan</h2>
@@ -80,20 +88,18 @@ export default function PengaduanWarga() {
             </div>
           ))}
         </div>
-      )}
+      ))}
 
       {preview && (
-        <div className="ktp-lightbox" onClick={() => setPreview(null)} role="presentation">
-          <div className="ktp-lightbox-box" onClick={(e) => e.stopPropagation()}>
-            <div className="d-flex justify-content-between align-items-center mb-3 gap-2">
-              <div>
-                <strong>{preview.title}</strong>
-              </div>
-              <button className="btn btn-sm btn-outline-brand flex-shrink-0" onClick={() => setPreview(null)}>Tutup</button>
+        <AppModal onClose={() => setPreview(null)} label={`Foto bukti ${preview.title}`}>
+          <div className="d-flex justify-content-between align-items-center mb-3 gap-2">
+            <div>
+              <strong>{preview.title}</strong>
             </div>
-            <img src={preview.src} alt={preview.title} className="w-100 rounded" />
+            <button type="button" className="btn btn-sm btn-outline-brand flex-shrink-0" onClick={() => setPreview(null)}>Tutup</button>
           </div>
-        </div>
+          <img src={preview.src} alt={preview.title} className="w-100 rounded" />
+        </AppModal>
       )}
     </div>
   );

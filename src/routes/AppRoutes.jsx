@@ -1,7 +1,9 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import ScrollToTop from '../components/common/ScrollToTop.jsx';
 import PageMeta from '../components/common/PageMeta.jsx';
+import AppIcon from '../components/common/AppIcon.jsx';
 
 // Layouts
 import PublicLayout from '../layouts/PublicLayout.jsx';
@@ -9,55 +11,66 @@ import WargaLayout from '../layouts/WargaLayout.jsx';
 import AdminLayout from '../layouts/AdminLayout.jsx';
 
 // Admin Pages
-import AdminDashboard from '../pages/admin/AdminDashboard.jsx';
-import AdminWarga from '../pages/admin/AdminWarga.jsx';
-import AdminPengaduan from '../pages/admin/AdminPengaduan.jsx';
-import AdminSurat from '../pages/admin/AdminSurat.jsx';
-import AdminBerita from '../pages/admin/AdminBerita.jsx';
-import AdminPengumuman from '../pages/admin/AdminPengumuman.jsx';
-import AdminDokumen from '../pages/admin/AdminDokumen.jsx';
-import AdminProfil from '../pages/admin/AdminProfil.jsx';
-import AdminPerangkat from '../pages/admin/AdminPerangkat.jsx';
-import AdminAdmins from '../pages/admin/AdminAdmins.jsx';
-import AdminPetugas from '../pages/admin/AdminPetugas.jsx';
-import AdminVideo from '../pages/admin/AdminVideo.jsx';
-import AdminLayanan from '../pages/admin/AdminLayanan.jsx';
-import AdminHero from '../pages/admin/AdminHero.jsx';
+const AdminDashboard = lazy(() => import('../pages/admin/AdminDashboard.jsx'));
+const AdminWarga = lazy(() => import('../pages/admin/AdminWarga.jsx'));
+const AdminPengaduan = lazy(() => import('../pages/admin/AdminPengaduan.jsx'));
+const AdminSurat = lazy(() => import('../pages/admin/AdminSurat.jsx'));
+const AdminBerita = lazy(() => import('../pages/admin/AdminBerita.jsx'));
+const AdminPengumuman = lazy(() => import('../pages/admin/AdminPengumuman.jsx'));
+const AdminDokumen = lazy(() => import('../pages/admin/AdminDokumen.jsx'));
+const AdminProfil = lazy(() => import('../pages/admin/AdminProfil.jsx'));
+const AdminPerangkat = lazy(() => import('../pages/admin/AdminPerangkat.jsx'));
+const AdminAdmins = lazy(() => import('../pages/admin/AdminAdmins.jsx'));
+const AdminPetugas = lazy(() => import('../pages/admin/AdminPetugas.jsx'));
+const AdminVideo = lazy(() => import('../pages/admin/AdminVideo.jsx'));
+const AdminLayanan = lazy(() => import('../pages/admin/AdminLayanan.jsx'));
+const AdminHero = lazy(() => import('../pages/admin/AdminHero.jsx'));
 
 // Public Pages
-import Beranda from '../pages/public/Beranda.jsx';
-import Profil from '../pages/public/Profil.jsx';
-import Pemerintahan from '../pages/public/Pemerintahan.jsx';
-import BeritaList from '../pages/public/BeritaList.jsx';
-import BeritaDetail from '../pages/public/BeritaDetail.jsx';
-import PengumumanList from '../pages/public/PengumumanList.jsx';
-import PengumumanDetail from '../pages/public/PengumumanDetail.jsx';
-import LayananList from '../pages/public/LayananList.jsx';
-import LayananDetail from '../pages/public/LayananDetail.jsx';
-import PengaduanInfo from '../pages/public/PengaduanInfo.jsx';
-import Pelacakan from '../pages/public/Pelacakan.jsx';
-import Kontak from '../pages/public/Kontak.jsx';
-import Cari from '../pages/public/Cari.jsx';
-import ProfilSubPage from '../pages/public/ProfilSubPage.jsx';
-import Kegiatan from '../pages/public/Kegiatan.jsx';
-import Dokumen from '../pages/public/Dokumen.jsx';
-import NotFound from '../pages/public/NotFound.jsx';
-import TugasLaporan from '../pages/public/TugasLaporan.jsx';
+const Beranda = lazy(() => import('../pages/public/Beranda.jsx'));
+const Profil = lazy(() => import('../pages/public/Profil.jsx'));
+const Pemerintahan = lazy(() => import('../pages/public/Pemerintahan.jsx'));
+const BeritaList = lazy(() => import('../pages/public/BeritaList.jsx'));
+const BeritaDetail = lazy(() => import('../pages/public/BeritaDetail.jsx'));
+const PengumumanList = lazy(() => import('../pages/public/PengumumanList.jsx'));
+const PengumumanDetail = lazy(() => import('../pages/public/PengumumanDetail.jsx'));
+const LayananList = lazy(() => import('../pages/public/LayananList.jsx'));
+const LayananDetail = lazy(() => import('../pages/public/LayananDetail.jsx'));
+const PengaduanInfo = lazy(() => import('../pages/public/PengaduanInfo.jsx'));
+const Pelacakan = lazy(() => import('../pages/public/Pelacakan.jsx'));
+const Kontak = lazy(() => import('../pages/public/Kontak.jsx'));
+const Cari = lazy(() => import('../pages/public/Cari.jsx'));
+const ProfilSubPage = lazy(() => import('../pages/public/ProfilSubPage.jsx'));
+const Kegiatan = lazy(() => import('../pages/public/Kegiatan.jsx'));
+const Dokumen = lazy(() => import('../pages/public/Dokumen.jsx'));
+const NotFound = lazy(() => import('../pages/public/NotFound.jsx'));
+const TugasLaporan = lazy(() => import('../pages/public/TugasLaporan.jsx'));
 
 // Auth Pages
-import Login from '../pages/auth/Login.jsx';
-import Register from '../pages/auth/Register.jsx';
-import Verifikasi from '../pages/auth/Verifikasi.jsx';
+const Login = lazy(() => import('../pages/auth/Login.jsx'));
+const Register = lazy(() => import('../pages/auth/Register.jsx'));
+const Verifikasi = lazy(() => import('../pages/auth/Verifikasi.jsx'));
 
 // Warga Pages
-import Dashboard from '../pages/warga/Dashboard.jsx';
-import PengaduanBaru from '../pages/warga/PengaduanBaru.jsx';
-import PengaduanWarga from '../pages/warga/PengaduanWarga.jsx';
-import SuratBaru from '../pages/warga/SuratBaru.jsx';
-import SuratWarga from '../pages/warga/SuratWarga.jsx';
-import Riwayat from '../pages/warga/Riwayat.jsx';
-import Notifikasi from '../pages/warga/Notifikasi.jsx';
-import WargaProfil from '../pages/warga/WargaProfil.jsx';
+const Dashboard = lazy(() => import('../pages/warga/Dashboard.jsx'));
+const PengaduanBaru = lazy(() => import('../pages/warga/PengaduanBaru.jsx'));
+const PengaduanWarga = lazy(() => import('../pages/warga/PengaduanWarga.jsx'));
+const SuratBaru = lazy(() => import('../pages/warga/SuratBaru.jsx'));
+const SuratWarga = lazy(() => import('../pages/warga/SuratWarga.jsx'));
+const Riwayat = lazy(() => import('../pages/warga/Riwayat.jsx'));
+const Notifikasi = lazy(() => import('../pages/warga/Notifikasi.jsx'));
+const WargaProfil = lazy(() => import('../pages/warga/WargaProfil.jsx'));
+
+function RouteFallback() {
+  return (
+    <div className="container py-5 text-center" role="status" aria-live="polite">
+      <div className="spinner-border text-brand" />
+      <p className="text-muted small mt-3 mb-0">
+        <AppIcon name="arrow-repeat" className="me-1" /> Memuat halaman…
+      </p>
+    </div>
+  );
+}
 
 /**
  * Auth Guard — redirects unauthenticated users to /login
@@ -90,7 +103,8 @@ export default function AppRoutes() {
     <BrowserRouter>
       <ScrollToTop />
       <PageMeta />
-      <Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
         {/* ── Public routes with navbar + footer ── */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Beranda />} />
@@ -153,7 +167,8 @@ export default function AppRoutes() {
 
         {/* ── Catch-all: custom 404 ── */}
         <Route path="*" element={<NotFound />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

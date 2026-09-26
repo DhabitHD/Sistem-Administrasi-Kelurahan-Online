@@ -3,6 +3,7 @@ import { listWarga, setWargaStatus } from '../../services/store.js';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
+import AppModal from '../../components/common/AppModal.jsx';
 
 const filters = ['Semua', 'PENDING', 'VERIFIED', 'REJECTED'];
 
@@ -15,7 +16,24 @@ const fmtTanggal = (d) => {
   }
 };
 
-const initials = (name) => name.split(' ').filter((w) => /^[A-Z]/.test(w)).slice(0, 2).map((w) => w[0]).join('');
+const initials = (name) => (name || '').split(' ').filter((w) => /^[A-Z]/.test(w)).slice(0, 2).map((w) => w[0]).join('');
+
+/* This is the screen an admin uses to verify someone's identity, so a failed load
+   has to be visibly different from "no photo was uploaded". A bare <img> left an
+   empty white box in both cases. */
+function KtpImage({ src, name }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="rounded bg-light d-flex align-items-center justify-content-center text-center" style={{ height: 160 }}>
+        <span className="text-danger small px-2">
+          Foto gagal dimuat. Periksa file di server atau hubungi warga untuk mengunggah ulang.
+        </span>
+      </div>
+    );
+  }
+  return <img src={src} alt={`Foto KTP ${name}`} className="w-100 rounded" onError={() => setFailed(true)} />;
+}
 
 export default function AdminWarga() {
   const [users, setUsers] = useState([]);
@@ -29,7 +47,12 @@ export default function AdminWarga() {
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const refresh = () => listWarga().then(setUsers).catch(() => setUsers([]));
+  const refresh = () =>
+    listWarga()
+      .then((d) => { setUsers(d); setErr(''); })
+      /* Do not swallow this: an empty list must mean "no residents", not
+         "the server is down". Otherwise the admin concludes nobody registered. */
+      .catch((e) => { setUsers([]); setErr(`Data warga gagal dimuat: ${e.message || 'periksa koneksi'}`); });
 
   useEffect(() => {
     refresh();
@@ -104,7 +127,22 @@ export default function AdminWarga() {
                 onClick={() => setDetail(u)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') setDetail(u); }}
+                /* Space activates a button too, not just Enter — this handler
+                   responded to Enter only, so a keyboard user could open the
+                   detail view in one way and not the other. */
+                onKeyDown={(e) => {
+                  /* This card contains real controls (KTP thumbnail, Setujui,
+                     Tolak, Ubah, Hapus). Without this guard, keydown from any of
+                     them bubbles here, and the card's e.preventDefault() cancels
+                     the nested button's activation — Setujui/Tolak/Ubah/Hapus
+                     were completely dead by keyboard. The stopPropagation() calls
+                     are all onClick and do not cover keydown. */
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setDetail(u);
+                  }
+                }}
               >
                 <div className="d-flex gap-3 align-items-start">
                   <div className="d-flex flex-column align-items-center flex-shrink-0 gap-2">
@@ -180,14 +218,13 @@ export default function AdminWarga() {
       )}
 
       {ktpView && (
-        <div className="ktp-lightbox" onClick={() => setKtpView(null)} role="presentation">
-          <div className="ktp-lightbox-box" onClick={(e) => e.stopPropagation()}>
+        <AppModal onClose={() => setKtpView(null)} label={`Foto identitas ${ktpView.name}`}>
             <div className="d-flex justify-content-between align-items-center mb-3 gap-2">
               <div>
                 <strong>{ktpView.name}</strong>
                 <small className="d-block text-muted">NIK {ktpView.nik} · Foto identitas pendaftaran</small>
               </div>
-              <button className="btn btn-sm btn-outline-brand flex-shrink-0" onClick={() => setKtpView(null)}>Tutup</button>
+              <button type="button" className="btn btn-sm btn-outline-brand flex-shrink-0" onClick={() => setKtpView(null)}>Tutup</button>
             </div>
             <div className="row g-3">
               <div className="col-4">
@@ -203,7 +240,7 @@ export default function AdminWarga() {
               <div className="col-8">
                 <small className="text-muted d-block mb-1">Foto KTP</small>
                 {ktpView.ktp ? (
-                  <img src={ktpView.ktp} alt={`Foto KTP ${ktpView.name}`} className="w-100 rounded" />
+                  <KtpImage src={ktpView.ktp} name={ktpView.name} />
                 ) : (
                   <div className="rounded bg-light d-flex align-items-center justify-content-center" style={{ height: 160 }}>
                     <span className="text-muted small">Tidak diunggah saat pendaftaran</span>
@@ -211,13 +248,11 @@ export default function AdminWarga() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
+        </AppModal>
       )}
 
       {detail && (
-        <div className="ktp-lightbox" onClick={() => setDetail(null)} role="presentation">
-          <div className="ktp-lightbox-box" onClick={(e) => e.stopPropagation()}>
+        <AppModal onClose={() => setDetail(null)} label={detail.name}>
             <div className="d-flex justify-content-between align-items-center mb-3 gap-2">
               <div>
                 <h3 className="h5 mb-1">{detail.name}</h3>
@@ -225,7 +260,7 @@ export default function AdminWarga() {
               </div>
               <div className="d-flex align-items-center gap-2 flex-shrink-0">
                 <StatusBadge status={detail.status} />
-                <button className="btn btn-sm btn-outline-brand" onClick={() => setDetail(null)}>Tutup</button>
+                <button type="button" className="btn btn-sm btn-outline-brand" onClick={() => setDetail(null)}>Tutup</button>
               </div>
             </div>
 
@@ -274,27 +309,25 @@ export default function AdminWarga() {
 
             {detail.status === 'PENDING' && (
               <div className="d-flex gap-2 mt-3 pt-3 border-top">
-                <button className="btn btn-sm btn-brand" onClick={() => { setDetail(null); openReview(detail, 'VERIFIED'); }}>
+                <button type="button" className="btn btn-sm btn-brand" onClick={() => { setDetail(null); openReview(detail, 'VERIFIED'); }}>
                   <AppIcon name="user-check" className="me-1" />Setujui
                 </button>
-                <button className="btn btn-sm btn-outline-danger" onClick={() => { setDetail(null); openReview(detail, 'REJECTED'); }}>
+                <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => { setDetail(null); openReview(detail, 'REJECTED'); }}>
                   <AppIcon name="user-x" className="me-1" />Tolak
                 </button>
               </div>
             )}
-          </div>
-        </div>
+        </AppModal>
       )}
 
       {review && (
-        <div className="ktp-lightbox" onClick={() => !saving && setReview(null)} role="presentation">
-          <div className="ktp-lightbox-box" onClick={(e) => e.stopPropagation()}>
+        <AppModal onClose={() => !saving && setReview(null)} label={`Konfirmasi ${review.u.name}`}>
             <div className="d-flex justify-content-between align-items-center mb-2 gap-2">
               <div>
                 <strong>{review.status === 'VERIFIED' ? 'Setujui' : 'Tolak'} — {review.u.name}</strong>
                 <small className="d-block text-muted">NIK {review.u.nik} · {review.u.email || 'tanpa email'}</small>
               </div>
-              <button className="btn btn-sm btn-outline-brand flex-shrink-0" disabled={saving} onClick={() => setReview(null)}>Batal</button>
+              <button type="button" className="btn btn-sm btn-outline-brand flex-shrink-0" disabled={saving} onClick={() => setReview(null)}>Batal</button>
             </div>
             <p className="small text-muted">
               {review.status === 'VERIFIED'
@@ -320,8 +353,7 @@ export default function AdminWarga() {
             >
               {saving ? 'Menyimpan…' : review.status === 'VERIFIED' ? 'Setujui & Kirim Notifikasi' : 'Tolak & Kirim Notifikasi'}
             </button>
-          </div>
-        </div>
+        </AppModal>
       )}
     </div>
   );

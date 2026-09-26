@@ -10,6 +10,15 @@
   <link rel="icon" type="image/png" href="/assets/placeholders/logo-kelurahan.png" />
   <link rel="apple-touch-icon" href="/assets/placeholders/logo-kelurahan.png" />
 
+  <!-- Installable on Android/Chrome via manifest.json only. There is deliberately
+       no service worker: every page here renders live API data, so an offline cache
+       would only ever serve stale content while adding a cache-version to keep in
+       sync. Add one (and a cache-bust step in vite.config.js) only if offline
+       access to static pages becomes a real requirement. -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Betet" />
+
   <!-- Social sharing -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Kelurahan Betet — Kota Kediri" />
@@ -29,6 +38,33 @@
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500;12..96,75..100,600;12..96,75..100,700;12..96,75..100,800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <title>Kelurahan Betet — Kota Kediri</title>
+
+  <!-- Structured data. Static block in index.html: it describes the organisation,
+       not the individual page, so it never needs to change per route. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "GovernmentOrganization",
+    "name": "Kelurahan Betet",
+    "alternateName": "Kelurahan Betet Kota Kediri",
+    "url": "https://kelurahanbetet.example.org/",
+    "logo": "https://kelurahanbetet.example.org/assets/placeholders/logo-kelurahan.png",
+    "image": "https://kelurahanbetet.example.org/assets/placeholders/logo-kelurahan.png",
+    "description": "Website resmi Kelurahan Betet, Kecamatan Pesantren, Kota Kediri — portal informasi dan pelayanan publik.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Jl. Raya Betet Bawang 76",
+      "addressLocality": "Kota Kediri",
+      "addressRegion": "Jawa Timur",
+      "addressCountry": "ID"
+    },
+    "telephone": "+62-354-682955",
+    "openingHoursSpecification": [
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"], "opens": "08:00", "closes": "15:00" },
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": "Friday", "opens": "07:00", "closes": "14:00" }
+    ]
+  }
+  </script>
   <style>
     .preloader {
       position: fixed; inset: 0; z-index: 9999;
@@ -96,17 +132,14 @@
     </div>
   </div>
   <div id="root"></div>
+  <noscript>
+    <style>
+      /* .reveal starts at opacity:0 and is unhidden by JS. Without JS that would
+         hide all page content, so force it visible here. */
+      .reveal { opacity: 1 !important; transform: none !important; filter: none !important; }
+    </style>
+  </noscript>
+  <script src="/preloader.js"></script>
   <script type="module" src="/src/main.jsx"></script>
-  <script>
-    var plStart = Date.now();
-    function hidePreloader() {
-      var p = document.getElementById('preloader');
-      if (p) p.classList.add('hidden');
-    }
-    window.addEventListener('load', function () {
-      var wait = Math.max(0, 3000 - (Date.now() - plStart));
-      setTimeout(hidePreloader, wait);
-    });
-  </script>
 </body>
 </html>

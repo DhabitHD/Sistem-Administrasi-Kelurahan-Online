@@ -79,6 +79,14 @@ export default function AdminLayanan() {
                 <div className="col">
                   <label className="form-label fw-semibold" htmlFor="l-icon">Ikon</label>
                   <select id="l-icon" className="form-select" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}>
+                    {/* The seeder uses icons ('cross', 'baby', 'id-card', 'scan-text',
+                        'store', 'map-pin-house') that are not in iconOptions. Without
+                        this fallback the select rendered blank for those rows, and
+                        saving would silently overwrite the icon. Matches the pattern
+                        already used by AdminPengumuman:108 and AdminHero:134. */}
+                    {!iconOptions.includes(form.icon) && (
+                      <option value={form.icon}>{form.icon} (ikon tidak dikenal)</option>
+                    )}
                     {iconOptions.map((i) => <option key={i} value={i}>{i}</option>)}
                   </select>
                 </div>
@@ -112,21 +120,23 @@ export default function AdminLayanan() {
             <div className="row g-3">
               {items.map((it) => (
                 <div className="col-md-6 d-flex" key={it.slug}>
-                  <div className="dashboard-card p-3 w-100">
+                  <div className="dashboard-card p-3 w-100 d-flex flex-column">
                     <div className="d-flex gap-3 align-items-start">
                       <div className="service-icon flex-shrink-0"><AppIcon name={it.icon} size={20} /></div>
-                      <div className="flex-grow-1">
+                      <div className="flex-grow-1" style={{ minWidth: 0 }}>
                         <h3 className="h6 mb-1">{it.name}</h3>
                         <small className="text-muted d-block">{it.short}</small>
                       </div>
-                      <div className="d-flex gap-1 flex-shrink-0">
-                        <button className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)} title="Ubah">
-                          <AppIcon name="pencil" size={15} />
-                        </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} title="Hapus">
-                          <AppIcon name="trash" size={15} />
-                        </button>
-                      </div>
+                    </div>
+                    {/* Own row: inline, these buttons squeezed the title into ~135px
+                        and sat in the top-right corner. Matches AdminPengaduan. */}
+                    <div className="mt-3 pt-3 border-top d-flex gap-2 justify-content-end flex-shrink-0">
+                      <button type="button" aria-label="Ubah" title="Ubah" className="btn btn-sm btn-outline-brand" onClick={() => startEdit(it)}>
+                        <AppIcon name="pencil" size={15} />
+                      </button>
+                      <button type="button" aria-label="Hapus" title="Hapus" className="btn btn-sm btn-outline-danger" onClick={() => remove(it)}>
+                        <AppIcon name="trash" size={15} />
+                      </button>
                     </div>
                   </div>
                 </div>

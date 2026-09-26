@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { listOfficers, createOfficer, updateOfficer, deleteOfficer, uploadDataUrl } from '../../services/store.js';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
+import AppModal from '../../components/common/AppModal.jsx';
 
 const empty = { nama: '', wa: '', foto: '' };
 
@@ -20,7 +21,10 @@ export default function AdminPetugas() {
   const [success, setSuccess] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const refresh = () => listOfficers().then(setItems).catch(() => setItems([]));
+  const refresh = () =>
+    listOfficers()
+      .then((d) => { setItems(d); setError(''); })
+      .catch((e) => { setItems([]); setError(`Data petugas gagal dimuat: ${e.message || 'periksa koneksi'}`); });
   useEffect(() => { refresh(); }, []);
 
   const onFoto = async (e, into) => {
@@ -153,8 +157,8 @@ export default function AdminPetugas() {
                     </small>
                   </div>
                   <div className="d-flex gap-1 flex-shrink-0">
-                    <button className="btn btn-sm btn-outline-brand" onClick={() => openEdit(it)} title="Ubah"><AppIcon name="pencil" size={14} /></button>
-                    <button className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} title="Hapus"><AppIcon name="trash" size={14} /></button>
+                    <button type="button" aria-label="Ubah" title="Ubah" className="btn btn-sm btn-outline-brand" onClick={() => openEdit(it)} ><AppIcon name="pencil" size={14} /></button>
+                    <button type="button" aria-label="Hapus" title="Hapus" className="btn btn-sm btn-outline-danger" onClick={() => remove(it)} ><AppIcon name="trash" size={14} /></button>
                   </div>
                 </div>
               ))}
@@ -164,8 +168,7 @@ export default function AdminPetugas() {
       </div>
 
       {editing && (
-        <div className="ktp-lightbox" onClick={() => !saving && setEditing(null)} role="presentation">
-          <div className="ktp-lightbox-box" onClick={(e) => e.stopPropagation()}>
+        <AppModal onClose={() => !saving && setEditing(null)} label={`Ubah petugas ${editing.nama}`}>
             <div className="d-flex justify-content-between align-items-center mb-3 gap-2">
               <div>
                 <strong>Ubah Petugas</strong>
@@ -190,8 +193,7 @@ export default function AdminPetugas() {
             <button className="btn btn-brand w-100" type="button" disabled={saving} onClick={submitEdit}>
               {saving ? 'Menyimpan…' : 'Simpan Perubahan'}
             </button>
-          </div>
-        </div>
+        </AppModal>
       )}
     </div>
   );
