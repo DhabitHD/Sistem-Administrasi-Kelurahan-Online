@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Ganti http://localhost:5173 dengan domain resmi setelah deploy -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://localhost:5173/</loc><priority>1.0</priority></url>
+  <url><loc>http://localhost:5173/profil</loc><priority>0.8</priority></url>
+  <url><loc>http://localhost:5173/profil/sejarah</loc><priority>0.6</priority></url>
+  <url><loc>http://localhost:5173/profil/visi-misi</loc><priority>0.6</priority></url>
+  <url><loc>http://localhost:5173/profil/struktur-organisasi</loc><priority>0.6</priority></url>
+  <url><loc>http://localhost:5173/profil/demografi</loc><priority>0.6</priority></url>
+  <url><loc>http://localhost:5173/pemerintahan</loc><priority>0.7</priority></url>
+  <url><loc>http://localhost:5173/layanan</loc><priority>0.8</priority></url>
+  <url><loc>http://localhost:5173/berita</loc><priority>0.8</priority></url>
+  <url><loc>http://localhost:5173/kegiatan</loc><priority>0.7</priority></url>
+  <url><loc>http://localhost:5173/pengumuman</loc><priority>0.7</priority></url>
+  <url><loc>http://localhost:5173/dokumen</loc><priority>0.5</priority></url>
+  <url><loc>http://localhost:5173/pengaduan</loc><priority>0.7</priority></url>
+  <url><loc>http://localhost:5173/pelacakan</loc><priority>0.7</priority></url>
+  <url><loc>http://localhost:5173/kontak</loc><priority>0.6</priority></url>
+  <url><loc>http://localhost:5173/cari</loc><priority>0.4</priority></url>
+</urlset>

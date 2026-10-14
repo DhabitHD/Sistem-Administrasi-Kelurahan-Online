@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Website Resmi Kelurahan Betet, Kota Kediri — Portal Informasi dan Pelayanan Publik" />
+  <meta name="theme-color" content="#413E86" />
+
+  <!-- Favicon / browser tab -->
+  <link rel="icon" type="image/png" href="/assets/placeholders/Logo-Kediri.png" />
+  <link rel="apple-touch-icon" href="/assets/placeholders/Logo-Kediri.png" />
+  <!-- Preload hero pertama (LCP): tanpa ini browser menunggu JS + API sebelum unduh gambar. -->
+  <link rel="preload" as="image" href="/assets/placeholders/hero-banner.jpg" fetchpriority="high" />
+
+  <!-- Installable on Android/Chrome via manifest.json only. There is deliberately
+       no service worker: every page here renders live API data, so an offline cache
+       would only ever serve stale content while adding a cache-version to keep in
+       sync. Add one (and a cache-bust step in vite.config.js) only if offline
+       access to static pages becomes a real requirement. -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Betet" />
+
+  <!-- Social sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Kelurahan Betet — Kota Kediri" />
+  <meta property="og:title" content="Kelurahan Betet — Kota Kediri" />
+  <meta property="og:description" content="Portal informasi dan pelayanan publik Kelurahan Betet, Kecamatan Pesantren, Kota Kediri." />
+  <meta property="og:image" content="/assets/placeholders/Logo-Kediri.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Kelurahan Betet — Kota Kediri" />
+  <meta name="twitter:description" content="Portal informasi dan pelayanan publik Kelurahan Betet, Kecamatan Pesantren, Kota Kediri." />
+  <meta name="twitter:image" content="/assets/placeholders/Logo-Kediri.png" />
+
+  <!-- Google Fonts – Plus Jakarta Sans (body + display) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet" />
+
+  <title>Kelurahan Betet — Kota Kediri</title>
+
+  <!-- Structured data. Static block in index.html: it describes the organisation,
+       not the individual page, so it never needs to change per route. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "GovernmentOrganization",
+    "name": "Kelurahan Betet",
+    "alternateName": "Kelurahan Betet Kota Kediri",
+    "url": "https://kelurahanbetet.example.org/",
+    "logo": "https://kelurahanbetet.example.org/assets/placeholders/Logo-Kediri.png",
+    "image": "https://kelurahanbetet.example.org/assets/placeholders/Logo-Kediri.png",
+    "description": "Website resmi Kelurahan Betet, Kecamatan Pesantren, Kota Kediri — portal informasi dan pelayanan publik.",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Jl. Raya Betet Bawang 76",
+      "addressLocality": "Kota Kediri",
+      "addressRegion": "Jawa Timur",
+      "addressCountry": "ID"
+    },
+    "telephone": "+62-354-682955",
+    "openingHoursSpecification": [
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"], "opens": "08:00", "closes": "15:00" },
+      { "@type": "OpeningHoursSpecification", "dayOfWeek": "Friday", "opens": "07:00", "closes": "14:00" }
+    ]
+  }
+  </script>
+  <style>
+    .preloader {
+      position: fixed; inset: 0; z-index: 9999;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, #262467, #413E86);
+      transition: opacity .5s ease, visibility .5s ease;
+    }
+    .preloader.hidden { opacity: 0; visibility: hidden; }
+    .pl-logos {
+      display: flex; gap: 14px;
+      justify-content: center;
+    }
+    .pl-logo {
+      width: 92px; height: 92px;
+      display: grid; place-items: center;
+      background: #fff; border-radius: 20px;
+      box-shadow: 0 12px 32px rgba(11, 30, 61, .28);
+      animation: plPulse 1.6s ease-in-out infinite;
+    }
+    .pl-logo img { width: 56px; height: 56px; object-fit: contain; }
+    .pl-name {
+      margin-top: 1.1rem; text-align: center;
+      color: #fff; font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-weight: 800; font-size: 1.35rem; letter-spacing: .02em;
+      animation: plFloat 2.4s ease-in-out infinite;
+    }
+    .pl-bar {
+      width: 160px; height: 5px; margin: 1.4rem auto 0;
+      border-radius: 999px; overflow: hidden;
+      background: rgba(255, 255, 255, .22);
+    }
+    .pl-bar span {
+      display: block; width: 40%; height: 100%;
+      border-radius: 999px; background: #fff;
+      animation: plSlide 1.2s ease-in-out infinite;
+    }
+    @keyframes plPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.07); opacity: .92; }
+    }
+    @keyframes plFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes plSlide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pl-logo, .pl-name, .pl-bar span { animation: none; }
+      .pl-name { opacity: .9; }
+      .pl-bar span { width: 50%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preloader" id="preloader">
+    <div>
+      <div class="pl-logos">
+        <div class="pl-logo"><img src="/assets/placeholders/logo-unesa.png" alt="Memuat" /></div>
+        <div class="pl-logo"><img src="/assets/placeholders/Logo-Kediri.png" alt="Memuat" /></div>
+      </div>
+      <div class="pl-name">Kelurahan Betet</div>
+      <div class="pl-bar"><span></span></div>
+    </div>
+  </div>
+  <div id="root"></div>
+  <noscript>
+    <style>
+      /* .reveal starts at opacity:0 and is unhidden by JS. Without JS that would
+         hide all page content, so force it visible here. */
+      .reveal { opacity: 1 !important; transform: none !important; filter: none !important; }
+    </style>
+  </noscript>
+  <script src="/preloader.js"></script>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+# Apache / shared hosting (cPanel) — SPA fallback + security headers.
+# Requires "AllowOverride All" for this directory in the vhost, plus:
+#   a2enmod rewrite headers
+# Keep the header set in sync with public/_headers and vercel.json.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Serve real files and directories as-is (assets, robots.txt, uploads).
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Everything else is a client-side route -> index.html.
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  # script-src 'self' : no inline script (preloader is a real file)
+  # Referrer-Policy    : /tugas/:token is a secret link, must not leak
+  # img-src (no https:): uploads are served same-origin from /storage/uploads, and
+  #                      the only third-party embeds (Maps, YouTube) are iframes
+  Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; frame-src https://www.google.com https://www.youtube.com; upgrade-insecure-requests"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set X-Frame-Options "DENY"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set Permissions-Policy "geolocation=(), microphone=()"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Resource-Policy "same-origin"
+
+  # Only Vite's content-hashed bundle output. Images under public/assets are
+  # hand-edited and NOT hashed, so they must stay revalidated — a year-long
+  # immutable cache on a replaced logo is unfixable without a hard reload.
+  <FilesMatch "\.(js|css|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  <FilesMatch "index\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# Serve over HTTPS only: the Sanctum token lives in localStorage.
+<IfModule mod_rewrite.c>
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+ErrorDocument 404 /index.html

@@ -1,0 +1,7 @@
+/* -- Wave divider (ekstensi Bootstrap, import via main.jsx) -- */
+.site-footer{position:relative;}
+.wave-divider{position:absolute;left:0;right:0;line-height:0;pointer-events:none;z-index:2;}
+.wave-divider svg{width:100%;height:100%;display:block;}
+.wave-top{top:-1px;}
+.wave-flip svg{transform:rotate(180deg);}
+.footer-wave{top:-1px;}

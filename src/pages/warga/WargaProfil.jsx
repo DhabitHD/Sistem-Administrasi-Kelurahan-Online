@@ -1,0 +1,210 @@
+import { useEffect, useState } from 'react';
+import AppIcon from '../../components/common/AppIcon.jsx';
+import { useAuth } from '../../contexts/AuthContext.jsx';
+import { updateProfile, uploadDataUrl, changePassword } from '../../services/store.js';
+import StatusBadge from '../../components/common/StatusBadge.jsx';
+import AppAlert from '../../components/common/AppAlert.jsx';
+
+const avatarInitial = (name) =>
+  (name || '').trim().split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+
+export default function WargaProfil() {
+  const { user, updateUser } = useAuth();
+  const [form, setForm] = useState({ wa: user?.wa || '', email: user?.email || '', alamat: user?.alamat || '' });
+  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [pw, setPw] = useState({ current_password: '', password: '', password_confirmation: '' });
+  const [pwMsg, setPwMsg] = useState('');
+  const [pwErr, setPwErr] = useState('');
+  const [pwBusy, setPwBusy] = useState(false);
+
+  /* Sinkronkan form bila user tiba setelah mount (refresh /auth/me). Tanpa ini
+     input tetap kosong dan simpan menimpa data kontak dengan string kosong. */
+  useEffect(() => {
+    if (!user) return;
+    setForm({ wa: user.wa || '', email: user.email || '', alamat: user.alamat || '' });
+    setAvatar((cur) => (cur && cur.startsWith('data:') ? cur : user.avatar || ''));
+  }, [user?.id]);
+
+  const onAvatar = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('File foto harus berupa gambar.');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 500 * 1024) {
+      setError('Ukuran foto maksimal 500 KB. Pilih foto yang lebih kecil.');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setAvatar(reader.result);
+    reader.readAsDataURL(file);
+    setError('');
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (saving) return;
+    setError(''); setSuccess('');
+    if (!/^\d{9,15}$/.test(form.wa)) {
+      setError('Nomor WhatsApp tidak valid. Gunakan angka tanpa spasi.');
+      return;
+    }
+    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) {
+      setError('Format email tidak valid.');
+      return;
+    }
+    if (!form.alamat.trim()) {
+      setError('Alamat wajib diisi.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const avatarPath = avatar && avatar.startsWith('data:') ? await uploadDataUrl(avatar) : avatar;
+      const updated = await updateProfile({ ...form, avatar: avatarPath });
+      updateUser(updated);
+      /* Keep the stored path, not the dataURL, otherwise the next save re-uploads
+         the same photo and orphans the previous file on the server. */
+      setAvatar(avatarPath || '');
+      setSuccess('Data kontak berhasil diperbarui.');
+    } catch (err) {
+      setError(err.message || 'Gagal memperbarui profil.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const rows = [
+    ['Nama Lengkap', user?.name || '-'],
+    ['NIK', user?.nik || '-'],
+    ['Nomor KK', user?.kk || '-'],
+    ['Status Akun', user?.status || '-'],
+    ['Terdaftar Sejak', user?.created_at ? new Date(user.created_at).toLocaleDateString('id-ID') : (user?.createdAt || '-')],
+  ];
+
+  if (!user) {
+    return (
+      <div className="container-fluid" role="status" aria-live="polite">
+        <div className="dashboard-card p-5 text-center">
+          <div className="spinner-border text-brand" />
+          <p className="text-muted small mt-3 mb-0">Memuat profil…</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container-fluid">
+      <div className="page-header mb-4">
+        <span className="eyebrow text-brand">PORTAL WARGA</span>
+        <h1 className="h2 mt-2">Profil Saya</h1>
+        <p className="lead text-muted">Data identitas dan kontak terdaftar pada kelurahan.</p>
+      </div>
+
+      <div className="row g-4">
+        <div className="col-lg-5">
+          <div className="dashboard-card p-4">
+            <div className="d-flex align-items-center gap-3 mb-4">
+              <div className="position-relative">
+                <span className="profile-avatar">{avatar ? <img src={avatar} alt="Foto profil" /> : avatarInitial(user.name)}</span>
+                <label className="profile-avatar-edit" title="Ganti foto profil">
+                  <AppIcon name="camera" size={14} />
+                  {/* Not className="d-none": a display:none input is not focusable,
+                      so keyboard and screen-reader users could not change their
+                      avatar at all. Visually hidden but still in the tab order. */}
+                  <input type="file" accept="image/*" className="visually-hidden-focusable" onChange={onAvatar} aria-label="Ganti foto profil" />
+                </label>
+              </div>
+              <div>
+                <h2 className="h5 mb-0">{user.name}</h2>
+                <StatusBadge status={user.status} />
+              </div>
+            </div>
+            {rows.map(([label, value]) => (
+              <div className="d-flex justify-content-between py-2 border-bottom border-light" key={label}>
+                <small className="text-muted">{label}</small>
+                <strong className="text-end">{value}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="col-lg-7 d-flex flex-column gap-4">
+          <div className="dashboard-card p-4 h-auto">
+            <h2 className="h5 mb-3">Data kontak</h2>
+            <form onSubmit={submit}>
+              <div className="mb-3">
+                <label className="form-label fw-semibold" htmlFor="wa">Nomor WhatsApp</label>
+                <input id="wa" inputMode="numeric" className="form-control" value={form.wa} onChange={(e) => setForm({ ...form, wa: e.target.value })} />
+              </div>
+              <div className="mb-3">
+                <label className="form-label fw-semibold" htmlFor="email">Email</label>
+                <input id="email" type="email" className="form-control" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              </div>
+              <div className="mb-3">
+                <label className="form-label fw-semibold" htmlFor="alamat">Alamat</label>
+                <textarea id="alamat" rows="3" className="form-control" value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })}></textarea>
+              </div>
+              {error && <AppAlert type="danger">{error}</AppAlert>}
+              {success && <AppAlert type="success">{success}</AppAlert>}
+              <button className="btn btn-brand" type="submit" disabled={saving}>
+                {saving ? 'Menyimpan…' : 'Simpan Perubahan'}
+              </button>
+            </form>
+          </div>
+          <div className="dashboard-card p-4 h-auto">
+            <h2 className="h5 mb-3">Ganti password</h2>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setPwErr('');
+                setPwMsg('');
+                if (pw.password.length < 8) {
+                  setPwErr('Password baru minimal 8 karakter.');
+                  return;
+                }
+                if (pw.password !== pw.password_confirmation) {
+                  setPwErr('Konfirmasi password tidak sama.');
+                  return;
+                }
+                setPwBusy(true);
+                try {
+                  await changePassword(pw);
+                  setPwMsg('Password berhasil diubah.');
+                  setPw({ current_password: '', password: '', password_confirmation: '' });
+                } catch (err2) {
+                  setPwErr(err2?.message || 'Gagal mengganti password.');
+                } finally {
+                  setPwBusy(false);
+                }
+              }}
+            >
+              <div className="mb-3">
+                <label className="form-label fw-semibold" htmlFor="pw-cur">Password lama</label>
+                <input id="pw-cur" type="password" autoComplete="current-password" className="form-control" value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })} />
+              </div>
+              <div className="mb-3">
+                <label className="form-label fw-semibold" htmlFor="pw-new">Password baru</label>
+                <input id="pw-new" type="password" autoComplete="new-password" className="form-control" value={pw.password} onChange={(e) => setPw({ ...pw, password: e.target.value })} />
+              </div>
+              <div className="mb-3">
+                <label className="form-label fw-semibold" htmlFor="pw-conf">Konfirmasi password baru</label>
+                <input id="pw-conf" type="password" autoComplete="new-password" className="form-control" value={pw.password_confirmation} onChange={(e) => setPw({ ...pw, password_confirmation: e.target.value })} />
+              </div>
+              {pwErr && <AppAlert type="danger">{pwErr}</AppAlert>}
+              {pwMsg && <AppAlert type="success">{pwMsg}</AppAlert>}
+              <button className="btn btn-outline-brand" type="submit" disabled={pwBusy}>
+                {pwBusy ? 'Menyimpan…' : 'Ganti password'}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
