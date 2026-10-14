@@ -22,16 +22,25 @@ class AdminController extends Controller
     {
         $q = $request->string('q')->toString();
         $status = $request->string('status')->toString();
+        $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
 
         $query = User::where('role', 'warga');
         if (in_array($status, ['PENDING', 'VERIFIED', 'REJECTED'], true)) {
             $query->where('status', $status);
         }
         if ($q !== '') {
-            $query->where(fn ($b) => $b->where('name', 'like', "%$q%")->orWhere('nik', 'like', "%$q%")->orWhere('email', 'like', "%$q%"));
+            $query->where(fn ($b) => $b->where('name', 'like', \App\Support\Like::contains($q))->orWhere('nik', 'like', \App\Support\Like::contains($q))->orWhere('email', 'like', \App\Support\Like::contains($q)));
         }
 
-        return response()->json(['data' => $query->orderByDesc('id')->get()]);
+        if ($request->query('page') || $request->query('per_page')) {
+            $p = $query->orderByDesc('id')->paginate($perPage);
+            return response()->json(['data' => $p->items(), 'meta' => [
+                'current_page' => $p->currentPage(), 'last_page' => $p->lastPage(),
+                'per_page' => $p->perPage(), 'total' => $p->total(),
+            ]]);
+        }
+
+        return response()->json(['data' => $query->orderByDesc('id')->limit(200)->get()]);
     }
 
     public function wargaStatus(Request $request, string $nik): JsonResponse
@@ -46,7 +55,7 @@ class AdminController extends Controller
         }
         $user->update(['status' => $data['status']]);
 
-        $note = trim((string) $data['note'] ?? '');
+        $note = trim((string) ($data['note'] ?? ''));
         $pesan = $data['status'] === 'VERIFIED'
             ? 'Akun Anda telah diverifikasi dan siap digunakan.'.($note !== '' ? ' Catatan: '.$note : '')
             : ($note !== '' ? 'Pendaftaran Anda ditolak: '.$note : 'Pendaftaran Anda ditolak. Hubungi kelurahan untuk keterangan.');
@@ -84,10 +93,12 @@ class AdminController extends Controller
         }
 
         $item->update(['status' => $next]);
+        $item->loadMissing('user:id,name');
 
         $labelMap = ['DIAJUKAN' => 'diajukan ke kelurahan', 'IN_PROGRESS' => 'sedang diproses', 'SIAP_DIAMBIL' => 'siap diambil', 'CLOSED' => 'selesai', 'DITOLAK' => 'ditolak'];
         Notifier::notify($item->user, "{$label} {$item->id_code} kini {$labelMap[$next]}");
         ActivityLog::create(['user_id' => $item->user_id, 'text' => "{$label} {$item->id_code} kini {$labelMap[$next]} (admin)"]);
+        \App\Support\CacheSafe::forget('v2:admin:stats');
 
         return response()->json(['data' => $item]);
     }
@@ -102,7 +113,7 @@ class AdminController extends Controller
         $data = $request->validate([
             'nama' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:8',
             'wa' => 'nullable|string|max:20',
             'avatar' => 'nullable|string',
         ]);
@@ -125,7 +136,12 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
             'wa' => 'nullable|string|max:20',
             'avatar' => 'nullable|string',
-            'password' => 'nullable|string|min:6',
+            'password' => 'nullable|string|min:8',
+            /* Ganti password akun admin lain = aksi sensitif. Wajib buktikan
+               identitas admin yang sedang login dulu, bukan mengandalkan fakta
+               bahwa token-nya masih hidup. required_with = wajib hanya bila
+               password ikut dikirim (kosong = tak ada ganti password). */
+            'current_password' => 'required_with:password|nullable|string',
         ]);
         $patch = [
             'name' => $data['nama'],
@@ -133,9 +149,16 @@ class AdminController extends Controller
             'avatar' => $data['avatar'] ?? null,
         ];
         if (!empty($data['password'])) {
+            if (!\Illuminate\Support\Facades\Hash::check($data['current_password'] ?? '', $request->user()->password)) {
+                return response()->json(['message' => 'Password admin yang login salah.'], 422);
+            }
             $patch['password'] = $data['password'];
         }
         $admin->update($patch);
+        // Cabut sesi akun target agar password lama tak dipakai terus.
+        if (isset($patch['password'])) {
+            $admin->tokens()->delete();
+        }
         return response()->json(['data' => $admin]);
     }
 
@@ -149,17 +172,30 @@ class AdminController extends Controller
         return response()->json(null, 204);
     }
 
-    public function complaintsAll(): JsonResponse
+    public function complaintsAll(Request $request): JsonResponse
     {
-        $items = Complaint::with('user:id,name')->with('officer:id,nama,wa,foto')->orderByDesc('created_at')->get()
-            ->map(fn ($c) => [
+        $perPage = max(1, min(100, (int) $request->query('per_page', 20)));
+        $status = $request->string('status')->toString();
+        $query = Complaint::with('user:id,name')->with('officer:id,nama,wa,foto')->orderByDesc('created_at');
+        if ($status !== '') {
+            $query->where('status', $status);
+        }
+        $map = fn ($c) => [
                 'id' => $c->id, 'id_code' => $c->id_code, 'title' => $c->title, 'category' => $c->category,
                 'description' => $c->description, 'rt' => $c->rt, 'rw' => $c->rw, 'gmaps_link' => $c->gmaps_link,
                 'photo' => $c->photo, 'photos' => $c->photos, 'status' => $c->status, 'laporan' => $c->laporan, 'laporan_foto' => $c->laporan_foto, 'laporan_fotos' => $c->laporan_fotos,
                 'created_at' => $c->created_at,
                 'owner' => $c->user->name ?? '-',
                 'petugas' => $c->officer ? ['id' => $c->officer->id, 'nama' => $c->officer->nama, 'wa' => $c->officer->wa, 'foto' => $c->officer->foto] : null,
-            ]);
+            ];
+        if ($request->query('page') || $request->query('per_page')) {
+            $p = $query->paginate($perPage);
+            return response()->json(['data' => $p->getCollection()->map($map), 'meta' => [
+                'current_page' => $p->currentPage(), 'last_page' => $p->lastPage(),
+                'per_page' => $p->perPage(), 'total' => $p->total(),
+            ]]);
+        }
+        $items = $query->limit(200)->get()->map($map);
         return response()->json(['data' => $items]);
     }
 
@@ -243,7 +279,7 @@ class AdminController extends Controller
         if (!$complaint->token) {
             $complaint->token = \Illuminate\Support\Str::random(40);
         }
-        $complaint->update(['officer_id' => $officer->id, 'status' => 'IN_PROGRESS']);
+        $complaint->update(['officer_id' => $officer->id, 'status' => 'IN_PROGRESS', 'token_expires_at' => now()->addDays(3)]);
         $complaint->load('officer');
 
         $owner = $complaint->user->name ?? '-';
@@ -272,10 +308,15 @@ class AdminController extends Controller
         ]]);
     }
 
-    public function lettersAll(): JsonResponse
+    public function lettersAll(Request $request): JsonResponse
     {
-        $items = Letter::with('user:id,name,nik,kk,wa,alamat,email,ktp')->orderByDesc('created_at')->get()
-            ->map(fn ($l) => [
+        $perPage = max(1, min(100, (int) $request->query('per_page', 20)));
+        $status = $request->string('status')->toString();
+        $query = Letter::with('user:id,name,nik,kk,wa,alamat,email,ktp')->orderByDesc('created_at');
+        if ($status !== '') {
+            $query->where('status', $status);
+        }
+        $map = fn ($l) => [
                 'id' => $l->id, 'id_code' => $l->id_code, 'jenis' => $l->jenis, 'description' => $l->description,
                 'catatan' => $l->catatan, 'attachments' => $l->attachments,
                 'status' => $l->status, 'created_at' => $l->created_at,
@@ -286,22 +327,88 @@ class AdminController extends Controller
                 'alamat' => $l->user->alamat ?? null,
                 'email' => $l->user->email ?? null,
                 'ktp' => $l->user->ktp ?? null,
-            ]);
+            ];
+        if ($request->query('page') || $request->query('per_page')) {
+            $p = $query->paginate($perPage);
+            return response()->json(['data' => $p->getCollection()->map($map), 'meta' => [
+                'current_page' => $p->currentPage(), 'last_page' => $p->lastPage(),
+                'per_page' => $p->perPage(), 'total' => $p->total(),
+            ]]);
+        }
+        $items = $query->limit(200)->get()->map($map);
         return response()->json(['data' => $items]);
     }
 
     public function stats(Request $request): JsonResponse
     {
-        $today = now()->toDateString();
-        return response()->json(['data' => [
-            'warga_total' => User::where('role', 'warga')->count(),
-            'warga_pending' => User::where('role', 'warga')->where('status', 'PENDING')->count(),
-            'pengaduan_total' => Complaint::count(),
-            'pengaduan_aktif' => Complaint::whereIn('status', ['DIAJUKAN', 'IN_PROGRESS'])->count(),
-            'surat_total' => Letter::count(),
-            'surat_aktif' => Letter::whereIn('status', ['DIAJUKAN', 'IN_PROGRESS', 'SIAP_DIAMBIL'])->count(),
-            'berita_total' => \App\Models\Berita::count(),
-            'kunjungan_hari_ini' => (int) Visit::where('tanggal', $today)->value('count'),
+        $data = \App\Support\CacheSafe::remember('v2:admin:stats', 60, function () {
+            $today = now()->toDateString();
+            // Satu round-trip per grup count, di-cache 60 detik.
+            return [
+                'warga_total' => User::where('role', 'warga')->count(),
+                'warga_pending' => User::where('role', 'warga')->where('status', 'PENDING')->count(),
+                'pengaduan_total' => Complaint::count(),
+                'pengaduan_aktif' => Complaint::whereIn('status', ['DIAJUKAN', 'IN_PROGRESS'])->count(),
+                'surat_total' => Letter::count(),
+                'surat_aktif' => Letter::whereIn('status', ['DIAJUKAN', 'IN_PROGRESS', 'SIAP_DIAMBIL'])->count(),
+                'berita_total' => \App\Models\Berita::count(),
+                'kunjungan_hari_ini' => (int) Visit::where('tanggal', $today)->value('count'),
+            ];
+        });
+        return response()->json(['data' => $data]);
+    }
+
+    public function logs(Request $request): JsonResponse
+    {
+        $perPage = max(1, min(100, (int) $request->query('per_page', 20)));
+        $p = ActivityLog::with('user:id,name')->orderByDesc('id')->paginate($perPage);
+        return response()->json(['data' => $p->items(), 'meta' => [
+            'current_page' => $p->currentPage(), 'last_page' => $p->lastPage(),
+            'per_page' => $p->perPage(), 'total' => $p->total(),
         ]]);
+    }
+
+    public function export(Request $request, string $kind): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        if (!in_array($kind, ['pengaduan', 'surat', 'warga'], true)) {
+            abort(404);
+        }
+        $filename = "laporan-{$kind}-".now()->format('Ymd-His').'.csv';
+        $headers = ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => "attachment; filename=\"{$filename}\""];
+        return response()->stream(function () use ($kind) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF"); // BOM agar Excel baca UTF-8
+            // Netralkan formula injection: sel berawalan = + - @ TAB CR diforce jadi teks.
+            $safe = fn ($v) => self::csvCell($v);
+            if ($kind === 'pengaduan') {
+                fputcsv($out, ['id_code', 'title', 'category', 'status', 'owner', 'created_at']);
+                Complaint::with('user:id,name')->orderBy('id')->chunk(500, function ($rows) use ($out, $safe) {
+                    foreach ($rows as $c) {
+                        fputcsv($out, [$safe($c->id_code), $safe($c->title), $safe($c->category), $safe($c->status), $safe($c->user->name ?? '-'), $safe($c->created_at)]);
+                    }
+                });
+            } elseif ($kind === 'surat') {
+                fputcsv($out, ['id_code', 'jenis', 'status', 'owner', 'created_at']);
+                Letter::with('user:id,name')->orderBy('id')->chunk(500, function ($rows) use ($out, $safe) {
+                    foreach ($rows as $l) {
+                        fputcsv($out, [$safe($l->id_code), $safe($l->jenis), $safe($l->status), $safe($l->user->name ?? '-'), $safe($l->created_at)]);
+                    }
+                });
+            } else {
+                fputcsv($out, ['nik', 'name', 'email', 'status', 'created_at']);
+                User::where('role', 'warga')->orderBy('id')->chunk(500, function ($rows) use ($out, $safe) {
+                    foreach ($rows as $u) {
+                        fputcsv($out, [$safe($u->nik), $safe($u->name), $safe($u->email), $safe($u->status), $safe($u->created_at)]);
+                    }
+                });
+            }
+            fclose($out);
+        }, 200, $headers);
+    }
+
+    private static function csvCell($value): string
+    {
+        $s = (string) ($value ?? '');
+        return preg_match('/^[=+\-@\t\r]/', $s) ? "'".$s : $s;
     }
 }

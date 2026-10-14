@@ -12,7 +12,7 @@ class UploadController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,pdf,doc,docx,mp4,webm,mov|max:51200',
+            'file' => 'required|file|mimes:jpeg,png,jpg,gif,webp,pdf,doc,docx|max:10240',
         ]);
 
         $user = $request->user();

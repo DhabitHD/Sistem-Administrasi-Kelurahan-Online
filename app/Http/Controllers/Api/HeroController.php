@@ -11,7 +11,11 @@ class HeroController extends Controller
 {
     public function public(): JsonResponse
     {
-        $slides = HeroSlide::where('is_active', true)->orderBy('order')->get();
+        $slides = \App\Support\CacheSafe::remember(
+            'v2:hero_public',
+            3600,
+            fn () => HeroSlide::where('is_active', true)->orderBy('order')->get()->toArray()
+        );
         return response()->json(['data' => $slides]);
     }
 
@@ -24,6 +28,7 @@ class HeroController extends Controller
     {
         $data = $this->validated($request);
         $slide = HeroSlide::create($data);
+        \App\Support\CacheSafe::forget('v2:hero_public');
         return response()->json(['data' => $slide], 201);
     }
 
@@ -31,12 +36,14 @@ class HeroController extends Controller
     {
         $slide = HeroSlide::findOrFail($id);
         $slide->update($this->validated($request));
+        \App\Support\CacheSafe::forget('v2:hero_public');
         return response()->json(['data' => $slide]);
     }
 
     public function destroy(int $id): JsonResponse
     {
         HeroSlide::findOrFail($id)->delete();
+        \App\Support\CacheSafe::forget('v2:hero_public');
         return response()->json(null, 204);
     }
 

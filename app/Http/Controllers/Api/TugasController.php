@@ -18,6 +18,9 @@ class TugasController extends Controller
         if (!$c) {
             return response()->json(['message' => 'Tautan tidak valid.'], 404);
         }
+        if ($c->token_expires_at && now()->greaterThan($c->token_expires_at)) {
+            return response()->json(['message' => 'Tautan sudah kedaluwarsa. Minta admin mengirim ulang penugasan.'], 410);
+        }
         return response()->json(['data' => $this->payload($c)]);
     }
 
@@ -26,6 +29,9 @@ class TugasController extends Controller
         $c = Complaint::with('officer:id,nama,wa,foto')->where('token', $token)->first();
         if (!$c) {
             return response()->json(['message' => 'Tautan tidak valid.'], 404);
+        }
+        if ($c->token_expires_at && now()->greaterThan($c->token_expires_at)) {
+            return response()->json(['message' => 'Tautan sudah kedaluwarsa. Minta admin mengirim ulang penugasan.'], 410);
         }
         if (in_array($c->status, ['CLOSED', 'DITOLAK'], true)) {
             return response()->json(['message' => $c->status === 'CLOSED' ? 'Pengaduan ini sudah ditutup.' : 'Pengaduan ini ditolak.'], 422);
@@ -49,6 +55,9 @@ class TugasController extends Controller
             'laporan_foto' => $foto,
             'laporan_fotos' => array_values($fotos) ?: null,
             'status' => 'CLOSED',
+            // Sekali pakai: tautan mati setelah laporan masuk.
+            'token' => null,
+            'token_expires_at' => null,
         ]);
         $c->load('officer:id,nama,wa,foto');
 
@@ -80,6 +89,7 @@ class TugasController extends Controller
         $ext = $m[1] === 'jpeg' ? 'jpg' : $m[1];
         $name = 'anon_'.time().'_'.uniqid().'.'.$ext;
         Storage::disk('public')->put("uploads/{$name}", $bin);
-        return url('/storage/uploads/'.$name);
+        // Path relatif, konsisten dengan AuthController & UploadController.
+        return '/storage/uploads/'.$name;
     }
 }

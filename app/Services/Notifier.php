@@ -18,12 +18,13 @@ class Notifier
         }
 
         try {
-            Mail::to($user->email)->send(new StatusMail(
+            // Queue agar request tidak menunggu SMTP; butuh queue:work.
+            Mail::to($user->email)->queue(new StatusMail(
                 nama: $user->name,
                 pesan: $message,
             ));
         } catch (\Throwable $e) {
-            Log::error('Gagal kirim email ke '.$user->email.': '.$e->getMessage());
+            Log::error('Gagal antre email ke '.$user->email.': '.$e->getMessage());
         }
     }
 }

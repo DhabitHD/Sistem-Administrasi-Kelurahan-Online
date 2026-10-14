@@ -11,7 +11,12 @@ class ProfilController extends Controller
 {
     public function public(): JsonResponse
     {
-        return response()->json(['data' => Profil::first()]);
+        $profil = \App\Support\CacheSafe::remember(
+            'v2:profil_public',
+            3600,
+            fn () => Profil::first()?->toArray()
+        );
+        return response()->json(['data' => $profil]);
     }
 
     public function adminShow(): JsonResponse
@@ -34,9 +39,12 @@ class ProfilController extends Controller
             'kontak_email' => 'nullable|string|max:255',
             'kontak_jam' => 'nullable|string|max:255',
         ]);
-        $profil = Profil::firstOrNew(['id' => $id]);
+        // Singleton: abaikan {id} dari route agar ID arbitrer tidak bisa
+        // membuat baris profil duplikat.
+        $profil = Profil::first() ?? new Profil();
         $profil->fill($data);
         $profil->save();
+        \App\Support\CacheSafe::forget('v2:profil_public');
         return response()->json(['data' => $profil]);
     }
 }

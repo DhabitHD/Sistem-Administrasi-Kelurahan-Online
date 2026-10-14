@@ -41,9 +41,15 @@ php artisan key:generate
 # 3. Konfigurasi database di .env, lalu migrasi + seed
 php artisan migrate --seed
 
-# 4. Jalankan server
+# 4. Jalankan server + queue worker (wajib: email notifikasi & reset password diantre)
 php artisan serve
+php artisan queue:work
 ```
+
+> Tanpa `queue:work`, email status pengajuan dan token reset password menumpuk
+> di tabel `jobs` dan tidak terkirim. Di production jalankan worker via
+> Supervisor/systemd. Token Sanctum kedaluwarsa 24 jam (`SANCTUM_EXPIRATION`
+> menit di `.env`, default `1440`).
 
 Alternatif satu perintah: `composer setup` (otomatis install, generate key, migrate, build aset).
 

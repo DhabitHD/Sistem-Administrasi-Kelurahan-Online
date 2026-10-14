@@ -20,6 +20,11 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/app/public/uploads/
+/storage/framework/cache/data/
+/storage/framework/sessions/
+/storage/framework/testing/
+/storage/framework/views/
 /test-results
 /vendor
 _ide_helper.php

@@ -24,11 +24,19 @@ class AdminContentController extends Controller
 
     private function indexQuery(string $kind): \Illuminate\Support\Collection
     {
-        return ($this->model($kind))::orderBy('id', 'desc')->get();
+        return ($this->model($kind))::orderBy('id', 'desc')->limit(200)->get();
     }
 
-    public function index(string $kind): JsonResponse
+    public function index(Request $request, string $kind): JsonResponse
     {
+        $perPage = max(1, min(100, (int) $request->query('per_page', 15)));
+        if ($request->query('page') || $request->query('per_page')) {
+            $p = ($this->model($kind))::orderBy('id', 'desc')->paginate($perPage);
+            return response()->json(['data' => $p->items(), 'meta' => [
+                'current_page' => $p->currentPage(), 'last_page' => $p->lastPage(),
+                'per_page' => $p->perPage(), 'total' => $p->total(),
+            ]]);
+        }
         return response()->json(['data' => $this->indexQuery($kind)]);
     }
 
@@ -43,6 +51,7 @@ class AdminContentController extends Controller
         $data = $request->validate($rules);
         $data['slug'] = $this->uniqueSlug($kind, Str::slug($data['slug'] ?? ($data['title'] ?? $data['name']) ?: 'konten'));
         $item = ($this->model($kind))::create($data);
+        \App\Support\CacheSafe::bump('v3:pubgen');
         return response()->json(['data' => $item], 201);
     }
 
@@ -51,12 +60,14 @@ class AdminContentController extends Controller
         $item = ($this->model($kind))::where('slug', $slug)->firstOrFail();
         $data = $request->validate($this->rules($kind));
         $item->update($data);
+        \App\Support\CacheSafe::bump('v3:pubgen');
         return response()->json(['data' => $item]);
     }
 
     public function destroy(string $kind, string $slug): JsonResponse
     {
         ($this->model($kind))::where('slug', $slug)->firstOrFail()->delete();
+        \App\Support\CacheSafe::bump('v3:pubgen');
         return response()->json(null, 204);
     }
 

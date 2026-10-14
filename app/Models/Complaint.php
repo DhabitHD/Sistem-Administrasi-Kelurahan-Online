@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'id_code', 'title', 'category', 'description', 'rt', 'rw', 'gmaps_link', 'photo', 'photos', 'status', 'officer_id', 'token', 'laporan', 'laporan_foto', 'laporan_fotos'])]
+#[Fillable(['user_id', 'id_code', 'title', 'category', 'description', 'rt', 'rw', 'gmaps_link', 'photo', 'photos', 'status', 'officer_id', 'token', 'token_expires_at', 'laporan', 'laporan_foto', 'laporan_fotos'])]
 #[Hidden(['token'])]
 class Complaint extends Model
 {

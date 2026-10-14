@@ -12,9 +12,12 @@ use App\Http\Controllers\Api\WargaController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
+    Route::post('register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:10,1');
+    Route::post('forgot', [AuthController::class, 'forgot'])->middleware('throttle:5,1');
+    Route::post('reset', [AuthController::class, 'reset'])->middleware('throttle:5,1');
     Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::post('logout-all', [AuthController::class, 'logoutAll'])->middleware('auth:sanctum');
     Route::get('me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 });
 
@@ -28,28 +31,33 @@ Route::get('dokumen', [PublicController::class, 'dokumen']);
 Route::get('dokumen/{slug}', [PublicController::class, 'dokumenShow']);
 Route::get('perangkat', [PublicController::class, 'perangkat']);
 Route::get('videos', [PublicController::class, 'videos']);
-Route::get('cari', [PublicController::class, 'cari']);
-Route::post('visits', [PublicController::class, 'visits']);
+Route::get('cari', [PublicController::class, 'cari'])->middleware('throttle:60,1');
+Route::post('visits', [PublicController::class, 'visits'])->middleware('throttle:30,1');
 Route::get('hero', [HeroController::class, 'public']);
 Route::get('profil', [ProfilController::class, 'public']);
 /* Public (no auth) — status lookup only. Throttled because id_code is a
    sequential counter and the response is unauthenticated by design. */
 Route::get('tracking/{code}', [WargaController::class, 'tracking'])->middleware('throttle:30,1');
 
-Route::get('tugas/{token}', [TugasController::class, 'show']);
-Route::post('tugas/{token}/laporan', [TugasController::class, 'store']);
+Route::get('tugas/{token}', [TugasController::class, 'show'])->middleware('throttle:30,1');
+Route::post('tugas/{token}/laporan', [TugasController::class, 'store'])->middleware('throttle:10,1');
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('upload', [UploadController::class, 'store']);
+    Route::post('upload', [UploadController::class, 'store'])->middleware('throttle:30,1');
 
     Route::get('pengaduan', [WargaController::class, 'complaintsIndex']);
-    Route::post('pengaduan', [WargaController::class, 'complaintsStore']);
+    Route::post('pengaduan', [WargaController::class, 'complaintsStore'])->middleware('throttle:20,1');
     Route::get('pengaduan/{id}', [WargaController::class, 'complaintsShow']);
+    Route::put('pengaduan/{id}', [WargaController::class, 'complaintsUpdate']);
+    Route::post('pengaduan/{id}/batal', [WargaController::class, 'complaintsCancel']);
     Route::get('surat', [WargaController::class, 'lettersIndex']);
-    Route::post('surat', [WargaController::class, 'lettersStore']);
+    Route::post('surat', [WargaController::class, 'lettersStore'])->middleware('throttle:20,1');
     Route::get('surat/{id}', [WargaController::class, 'lettersShow']);
+    Route::put('surat/{id}', [WargaController::class, 'lettersUpdate']);
+    Route::post('surat/{id}/batal', [WargaController::class, 'lettersCancel']);
 
     Route::patch('warga/profil', [WargaController::class, 'updateProfile']);
+    Route::patch('warga/password', [WargaController::class, 'changePassword']);
     Route::get('notifikasi', [WargaController::class, 'notifications']);
     Route::post('notifikasi/seen', [WargaController::class, 'notificationsSeen']);
 });
@@ -64,6 +72,8 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('surat', [AdminController::class, 'lettersAll']);
     Route::patch('surat/{id}/status', [AdminController::class, 'statusLetter']);
     Route::get('stats', [AdminController::class, 'stats']);
+    Route::get('logs', [AdminController::class, 'logs']);
+    Route::get('export/{kind}', [AdminController::class, 'export']);
     Route::get('officers', [AdminController::class, 'officersIndex']);
     Route::post('officers', [AdminController::class, 'officersStore']);
     Route::put('officers/{id}', [AdminController::class, 'officersUpdate']);
@@ -85,7 +95,3 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('{kind}/{slug}', [AdminContentController::class, 'update']);
     Route::delete('{kind}/{slug}', [AdminContentController::class, 'destroy']);
 });
-
-Route::get('/user', function (Illuminate\Http\Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
