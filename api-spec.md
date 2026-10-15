@@ -45,7 +45,7 @@ Tambah kunjungan hari ini (tanpa body). Response `{ data: { total } }`.
 
 ### POST /api/auth/register
 Body: `nama, nik(16), kk(16), alamat, wa(9-15), email, password(min6), ktp?` (ktp = dataURL gambar `data:image/*;base64,...` maks 500KB — server simpan ke `/storage/uploads/...`; atau path hasil upload bila sudah diunggah). Server langsung mengantre email konfirmasi pendaftaran (butuh `queue:work`).
-Validasi unik: nik, email.
+Validasi unik: nik, email — kecuali milik akun berstatus REJECTED. Registrasi ulang dengan NIK/email akun REJECTED menghidupkan baris yang sama (data diperbarui, status kembali PENDING); NIK/email milik akun PENDING/VERIFIED tetap 422.
 Response `201`: `{ data: { nik } }`. User dibuat status `PENDING`, role `warga`.
 
 ### POST /api/auth/login
