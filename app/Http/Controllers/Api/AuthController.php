@@ -19,18 +19,61 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'nama' => 'required|string|max:255',
-            'nik' => 'required|digits:16|unique:users,nik',
+            'nik' => 'required|digits:16',
             'kk' => 'required|digits:16',
             'alamat' => 'required|string',
             'wa' => 'required|string|max:20',
-            'email' => 'required|email|max:255|unique:users,email',
+            'email' => 'required|email|max:255',
             'password' => 'required|string|min:8',
             'ktp' => 'nullable|string',
         ]);
+        $data['email'] = strtolower($data['email']);
+
+        $byNik = User::where('nik', $data['nik'])->first();
+        $byEmail = User::where('email', $data['email'])->first();
+
+        // NIK/email milik akun aktif (PENDING/VERIFIED, atau non-warga) tetap ditolak.
+        if ($byNik && $byNik->status !== 'REJECTED') {
+            throw ValidationException::withMessages(['nik' => 'NIK sudah terdaftar. Silakan masuk atau hubungi kelurahan.']);
+        }
+        if ($byEmail && $byEmail->status !== 'REJECTED') {
+            throw ValidationException::withMessages(['email' => 'Email sudah terdaftar. Silakan masuk atau gunakan email lain.']);
+        }
+        // NIK dan email milik dua akun ditolak yang berbeda — jangan digabung diam-diam.
+        if ($byNik && $byEmail && $byNik->id !== $byEmail->id) {
+            throw ValidationException::withMessages(['email' => 'Email dipakai pendaftaran lain yang ditolak. Hubungi kelurahan untuk keterangan.']);
+        }
 
         $ktp = $data['ktp'] ?? null;
         if ($ktp !== null && str_starts_with($ktp, 'data:')) {
             $ktp = $this->storeDataUrl($ktp);
+        }
+
+        // Registrasi ulang akun yang ditolak: hidupkan baris REJECTED yang sama
+        // (bukan insert baru) agar tak menabrak unique index nik/email.
+        $revived = $byNik ?? $byEmail;
+        if ($revived) {
+            if ($revived->ktp && str_starts_with($revived->ktp, '/storage/uploads/')) {
+                Storage::disk('public')->delete(ltrim(substr($revived->ktp, strlen('/storage/')), '/'));
+            }
+            $revived->tokens()->delete();
+            $revived->update([
+                'name' => $data['nama'],
+                'nik' => $data['nik'],
+                'kk' => $data['kk'],
+                'alamat' => $data['alamat'],
+                'wa' => $data['wa'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'ktp' => $ktp,
+                'status' => 'PENDING',
+            ]);
+
+            ActivityLog::create(['user_id' => $revived->id, 'text' => 'Pendaftaran ulang diterima, menunggu verifikasi admin kelurahan']);
+
+            Notifier::notify($revived, 'Terima kasih telah mendaftar ulang di portal Kelurahan Betet. Pendaftaran Anda kini menunggu verifikasi admin kelurahan dan Anda akan menerima email kembali setelah diverifikasi.');
+
+            return response()->json(['data' => ['nik' => $revived->nik]], 201);
         }
 
         $user = User::create([
