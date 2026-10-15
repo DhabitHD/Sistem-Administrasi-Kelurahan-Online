@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import AppIcon from './AppIcon.jsx';
 
 /** Banner global untuk respons 403 API (didispatch sebagai `betet:forbidden`
@@ -6,12 +7,20 @@ import AppIcon from './AppIcon.jsx';
     user mengira tombolnya rusak. */
 export default function ForbiddenNotice() {
   const [msg, setMsg] = useState('');
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const onForbidden = (e) => setMsg(e?.detail?.message || 'Akses ditolak.');
     window.addEventListener('betet:forbidden', onForbidden);
     return () => window.removeEventListener('betet:forbidden', onForbidden);
   }, []);
+
+  /* Jaring pengaman: banner 403 adalah konteks halaman saat ia muncul.
+     Tanpa ini, pesan basi (mis. dari percobaan sebelum login) ikut tampil
+     di halaman berikutnya bahkan setelah sesi berganti. */
+  useEffect(() => {
+    setMsg('');
+  }, [pathname]);
 
   if (!msg) return null;
 

@@ -880,6 +880,11 @@ color: #fff;
 .dash-row:hover { background: rgba(27, 138, 74, .02); }
 .dash-row > div, .dash-row > .min-w-0 { flex: 1 1 0%; min-width: 0; }
 .dashboard-card { height: 100%; }
+/* Kartu yang bertumpuk dalam satu kolom: tingginya alami. height:100% pada
+   tiap kartu bertumpuk membuat kolom flex yang ter-stretch menjadi acuan
+   pasti — tiap kartu dipaksa setinggi kolom lalu meluber menutupi footer
+   (terlihat di halaman /tugas). Satu kartu per kolom tetap mengisi penuh. */
+[class*="col"] > .dashboard-card:not(:only-child) { height: auto; }
 .card-click { cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease; }
 .card-click:hover { border-color: var(--color-brand); box-shadow: 0 4px 16px rgba(65, 62, 134, .08); }
 .card-click:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; border-radius: inherit; }

@@ -115,6 +115,9 @@ Body: `status: VERIFIED|REJECTED`, `note?` (string, maks 1000 char — alasan to
 Server buat notifikasi utk user tsb (isi `note` bila ada; REJECTED pakai `note` sbg pesan) + log aktivitas.
 Response `200` user.
 
+### DELETE /api/admin/warga/{nik}
+Hapus akun warga beserta data ikutannya (pengaduan, surat, notifikasi, log — cascade DB; token dicabut; file KTP/avatar lokal dihapus). `404` bila tak ada, `422` bila menghapus diri sendiri. Response `204`.
+
 ### PATCH /api/admin/pengaduan/{id}/status · PATCH /api/admin/surat/{id}/status
 Body: `status`.
 Rules maju: utk pengaduan `DIAJUKAN→IN_PROGRESS→CLOSED`, boleh `DITOLAK`; utk surat `DIAJUKAN→IN_PROGRESS→SIAP_DIAMBIL→CLOSED`, boleh `DITOLAK`. Mundur/kembalinya sama → `422`.

@@ -96,7 +96,13 @@ api.interceptors.response.use(
       window.dispatchEvent(new Event('betet:logged-out'));
     }
     if (status === 403) {
-      window.dispatchEvent(new CustomEvent('betet:forbidden', { detail: { message } }));
+      /* Login yang ditolak (PENDING/REJECTED) sudah ditampilkan form login
+         sendiri — jangan ikut memunculkan banner global yang menempel
+         permanen bahkan setelah login lain berhasil. */
+      const url = err.config?.url || '';
+      if (!url.includes('/auth/login')) {
+        window.dispatchEvent(new CustomEvent('betet:forbidden', { detail: { message } }));
+      }
     }
     return Promise.reject(new ApiError(message, status, data?.errors));
   }

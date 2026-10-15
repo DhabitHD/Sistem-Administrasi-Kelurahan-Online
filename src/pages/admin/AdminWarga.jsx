@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { listWarga, setWargaStatus } from '../../services/store.js';
+import { listWarga, setWargaStatus, deleteWarga } from '../../services/store.js';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
@@ -44,6 +44,7 @@ export default function AdminWarga() {
   const [ktpView, setKtpView] = useState(null);
   const [detail, setDetail] = useState(null);
   const [review, setReview] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -76,6 +77,22 @@ export default function AdminWarga() {
   const openReview = (u, status) => {
     setErr(''); setNote('');
     setReview({ u, status });
+  };
+
+  const remove = async () => {
+    if (!confirmDelete) return;
+    setSaving(true);
+    try {
+      await deleteWarga(confirmDelete.nik);
+      setMsg(`Akun ${confirmDelete.name} (${confirmDelete.nik}) dihapus beserta data pengaduan & suratnya.`);
+      setConfirmDelete(null);
+      setDetail(null);
+      refresh();
+    } catch (e) {
+      setErr(e.message || 'Gagal menghapus akun.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const items = users.filter(
@@ -210,6 +227,13 @@ export default function AdminWarga() {
                       <span className="text-muted small align-self-center"><AppIcon name="check2-circle" className="me-1" />Terverifikasi</span>
                     )
                   )}
+                  <button
+                    className="btn btn-sm btn-outline-danger ms-auto"
+                    title="Hapus akun warga"
+                    onClick={(e) => { e.stopPropagation(); setErr(''); setMsg(''); setConfirmDelete(u); }}
+                  >
+                    <AppIcon name="trash" className="me-1" />Hapus
+                  </button>
                 </div>
               </div>
             </div>
@@ -317,6 +341,15 @@ export default function AdminWarga() {
                 </button>
               </div>
             )}
+            <div className="d-flex gap-2 mt-3 pt-3 border-top">
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger"
+                onClick={() => { setErr(''); setMsg(''); setConfirmDelete(detail); }}
+              >
+                <AppIcon name="trash" className="me-1" />Hapus Akun Ini
+              </button>
+            </div>
         </AppModal>
       )}
 
@@ -353,6 +386,29 @@ export default function AdminWarga() {
             >
               {saving ? 'Menyimpan…' : review.status === 'VERIFIED' ? 'Setujui & Kirim Notifikasi' : 'Tolak & Kirim Notifikasi'}
             </button>
+        </AppModal>
+      )}
+
+      {confirmDelete && (
+        <AppModal onClose={() => !saving && setConfirmDelete(null)} label={`Hapus ${confirmDelete.name}`}>
+          <div className="d-flex gap-3 align-items-start">
+            <div className="doc-icon flex-shrink-0"><AppIcon name="alert-triangle" /></div>
+            <div>
+              <strong>Hapus akun {confirmDelete.name}?</strong>
+              <small className="d-block text-muted">NIK {confirmDelete.nik}</small>
+              <p className="small text-muted mb-0 mt-2">
+                Seluruh data milik warga ini — pengaduan, pengajuan surat, notifikasi, dan riwayat —
+                ikut terhapus permanen dan tidak bisa dikembalikan.
+              </p>
+            </div>
+          </div>
+          {err && <div className="mt-2"><AppAlert type="danger">{err}</AppAlert></div>}
+          <div className="d-flex gap-2 mt-3">
+            <button type="button" className="btn btn-outline-brand flex-grow-1" disabled={saving} onClick={() => setConfirmDelete(null)}>Batal</button>
+            <button type="button" className="btn btn-danger flex-grow-1" disabled={saving} onClick={remove}>
+              {saving ? 'Menghapus…' : 'Ya, Hapus'}
+            </button>
+          </div>
         </AppModal>
       )}
     </div>

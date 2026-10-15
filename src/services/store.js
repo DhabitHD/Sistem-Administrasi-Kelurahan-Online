@@ -36,6 +36,7 @@ export const submitTugasLaporan = (token, data) =>
 export const listWarga = async (filters = {}) => unwrapList(await api.get('/admin/warga', { params: filters }));
 export const setWargaStatus = (nik, status, note) =>
   api.patch(`/admin/warga/${encodeURIComponent(nik)}/status`, { status, note: note || undefined });
+export const deleteWarga = (nik) => api.delete(`/admin/warga/${encodeURIComponent(nik)}`);
 export const adminComplaints = async (params) => unwrapList(await api.get('/admin/pengaduan', { params }));
 export const adminLetters = async (params) => unwrapList(await api.get('/admin/surat', { params }));
 export const fetchLogs = (params) => api.get('/admin/logs', { params });
