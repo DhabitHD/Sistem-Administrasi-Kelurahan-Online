@@ -12,6 +12,7 @@ use App\Models\Visit;
 use App\Services\Notifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -160,6 +161,29 @@ class AdminController extends Controller
             $admin->tokens()->delete();
         }
         return response()->json(['data' => $admin]);
+    }
+
+    public function wargaDestroy(Request $request, string $nik): JsonResponse
+    {
+        $user = User::where('nik', $nik)->where('role', 'warga')->first();
+        if (!$user) {
+            return response()->json(['message' => 'Warga tidak ditemukan.'], 404);
+        }
+        if ($request->user()->id === $user->id) {
+            return response()->json(['message' => 'Tidak bisa menghapus akun sendiri.'], 422);
+        }
+        foreach (['ktp', 'avatar'] as $field) {
+            $path = $user->{$field};
+            if ($path && str_starts_with($path, '/storage/uploads/')) {
+                Storage::disk('public')->delete(ltrim(substr($path, strlen('/storage/')), '/'));
+            }
+        }
+        $user->tokens()->delete();
+        $name = $user->name;
+        $user->delete();
+        ActivityLog::create(['user_id' => $request->user()->id, 'text' => "Akun warga {$name} ({$nik}) dihapus admin"]);
+        \App\Support\CacheSafe::forget('v2:admin:stats');
+        return response()->json(null, 204);
     }
 
     public function adminsDestroy(Request $request, int $id): JsonResponse

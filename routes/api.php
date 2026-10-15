@@ -65,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('warga', [AdminController::class, 'wargaIndex']);
     Route::patch('warga/{nik}/status', [AdminController::class, 'wargaStatus']);
+    Route::delete('warga/{nik}', [AdminController::class, 'wargaDestroy']);
     Route::get('pengaduan', [AdminController::class, 'complaintsAll']);
     Route::patch('pengaduan/{id}/status', [AdminController::class, 'statusComplaint']);
     Route::post('pengaduan/{id}/tutup', [AdminController::class, 'closeComplaint']);
