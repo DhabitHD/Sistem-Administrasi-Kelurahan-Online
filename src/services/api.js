@@ -114,3 +114,24 @@ export async function uploadFile(file) {
   const { path } = await api.post('/upload', fd, { timeout: 120000 });
   return path;
 }
+
+/* Berkas identitas privat (KTP/avatar warga, path `private/...`) tidak bisa
+   dipakai langsung sebagai <img src>: browser tak mengirim token Sanctum.
+   Ambil via fetch ber-auth lalu tampilkan sebagai object URL (di-cache per
+   sesi). Path publik lama & dataURL dikembalikan apa adanya. */
+const fileUrlCache = new Map();
+
+export async function privateFileUrl(path) {
+  if (!path || !path.startsWith('private/')) return path || null;
+  if (fileUrlCache.has(path)) return fileUrlCache.get(path);
+  const base = import.meta.env.VITE_API_BASE_URL || '/api';
+  const res = await fetch(`${base}/files/${path}`, {
+    headers: { Authorization: `Bearer ${getToken() || ''}` },
+  });
+  if (!res.ok) throw new Error(`Gagal memuat berkas (${res.status}).`);
+  const url = URL.createObjectURL(await res.blob());
+  fileUrlCache.set(path, url);
+  return url;
+}
+
+export const isPrivatePath = (src) => typeof src === 'string' && src.startsWith('private/');

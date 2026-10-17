@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
 import AppModal from '../../components/common/AppModal.jsx';
+import PrivateImg from '../../components/common/PrivateImg.jsx';
 
 const empty = { nama: '', email: '', password: '', confirm: '', wa: '', avatar: '' };
 const editEmpty = { id: null, nama: '', wa: '', password: '', confirm: '', current_password: '', avatar: '' };
@@ -218,7 +219,7 @@ export default function AdminAdmins() {
               {items.map((it) => (
                 <div className="d-flex align-items-center gap-3 py-3 border-bottom border-light" key={it.id}>
                   {it.avatar ? (
-                    <img src={it.avatar} alt="" className="rounded-circle flex-shrink-0" style={{ width: 48, height: 48, objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    <PrivateImg src={it.avatar} alt="" className="rounded-circle flex-shrink-0" style={{ width: 48, height: 48, objectFit: 'cover' }} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                   ) : (
                     <span className="rounded-circle d-inline-flex align-items-center justify-content-center text-white flex-shrink-0" style={{ width: 48, height: 48, backgroundColor: 'var(--color-brand)' }}>{initials(it.name)}</span>
                   )}

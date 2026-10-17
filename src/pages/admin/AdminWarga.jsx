@@ -4,6 +4,7 @@ import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
 import AppModal from '../../components/common/AppModal.jsx';
+import PrivateImg, { usePrivateUrl } from '../../components/common/PrivateImg.jsx';
 
 const filters = ['Semua', 'PENDING', 'VERIFIED', 'REJECTED'];
 
@@ -22,8 +23,10 @@ const initials = (name) => (name || '').split(' ').filter((w) => /^[A-Z]/.test(w
    has to be visibly different from "no photo was uploaded". A bare <img> left an
    empty white box in both cases. */
 function KtpImage({ src, name }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
+  const { url, failed } = usePrivateUrl(src);
+  const [broken, setBroken] = useState(false);
+  useEffect(() => { setBroken(false); }, [src]);
+  if (failed || broken) {
     return (
       <div className="rounded bg-light d-flex align-items-center justify-content-center text-center" style={{ height: 160 }}>
         <span className="text-danger small px-2">
@@ -32,7 +35,14 @@ function KtpImage({ src, name }) {
       </div>
     );
   }
-  return <img src={src} alt={`Foto KTP ${name}`} className="w-100 rounded" onError={() => setFailed(true)} />;
+  if (!url) {
+    return (
+      <div className="rounded d-flex align-items-center justify-content-center" style={{ height: 160, background: 'var(--color-surface-muted, #eef0f4)' }}>
+        <span className="text-muted small">Memuat…</span>
+      </div>
+    );
+  }
+  return <PrivateImg src={src} alt={`Foto KTP ${name}`} className="w-100 rounded" onError={() => setBroken(true)} />;
 }
 
 export default function AdminWarga() {
@@ -164,7 +174,7 @@ export default function AdminWarga() {
                 <div className="d-flex gap-3 align-items-start">
                   <div className="d-flex flex-column align-items-center flex-shrink-0 gap-2">
                     {u.avatar ? (
-                      <img
+                      <PrivateImg
                         src={u.avatar}
                         alt="Foto profil"
                         className="rounded-circle"
@@ -185,7 +195,7 @@ export default function AdminWarga() {
                         onClick={(e) => { e.stopPropagation(); setKtpView(u); }}
                         title="Lihat foto KTP"
                       >
-                        <img
+                        <PrivateImg
                           src={u.ktp}
                           alt="Foto KTP"
                           className="w-100 h-100"
@@ -254,7 +264,7 @@ export default function AdminWarga() {
               <div className="col-4">
                 <small className="text-muted d-block mb-1">Foto profil</small>
                 {ktpView.avatar ? (
-                  <img src={ktpView.avatar} alt="Foto profil" className="w-100 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  <PrivateImg src={ktpView.avatar} alt="Foto profil" className="w-100 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 ) : (
                   <div className="rounded bg-light d-flex align-items-center justify-content-center" style={{ height: 160 }}>
                     <span className="text-muted small">Belum ada</span>
@@ -292,7 +302,7 @@ export default function AdminWarga() {
               <div className="col-md-6">
                 <small className="text-muted d-block mb-1">Foto profil</small>
                 {detail.avatar ? (
-                  <img
+                  <PrivateImg
                     src={detail.avatar}
                     alt="Foto profil"
                     className="w-100 rounded"
@@ -308,7 +318,7 @@ export default function AdminWarga() {
               <div className="col-md-6">
                 <small className="text-muted d-block mb-1">Foto KTP</small>
                 {detail.ktp ? (
-                  <img src={detail.ktp} alt={`Foto KTP ${detail.name}`} className="w-100 rounded" style={{ maxHeight: 260, objectFit: 'cover' }} />
+                  <PrivateImg src={detail.ktp} alt={`Foto KTP ${detail.name}`} className="w-100 rounded" style={{ maxHeight: 260, objectFit: 'cover' }} />
                 ) : (
                   <div className="rounded bg-light d-flex align-items-center justify-content-center" style={{ height: 180 }}>
                     <span className="text-muted small">Tidak diunggah saat pendaftaran</span>

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { useAuth } from '../../contexts/AuthContext.jsx';
-import { updateProfile, uploadDataUrl, changePassword } from '../../services/store.js';
+import { updateProfile, changePassword } from '../../services/store.js';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
+import PrivateImg from '../../components/common/PrivateImg.jsx';
 
 const avatarInitial = (name) =>
   (name || '').trim().split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
@@ -65,12 +66,13 @@ export default function WargaProfil() {
     }
     setSaving(true);
     try {
-      const avatarPath = avatar && avatar.startsWith('data:') ? await uploadDataUrl(avatar) : avatar;
-      const updated = await updateProfile({ ...form, avatar: avatarPath });
+      /* Avatar dikirim apa adanya: dataURL disimpan privat oleh server,
+         path lama dipakai ulang tanpa diunggah ulang. */
+      const updated = await updateProfile({ ...form, avatar: avatar || null });
       updateUser(updated);
       /* Keep the stored path, not the dataURL, otherwise the next save re-uploads
          the same photo and orphans the previous file on the server. */
-      setAvatar(avatarPath || '');
+      setAvatar(updated.avatar || '');
       setSuccess('Data kontak berhasil diperbarui.');
     } catch (err) {
       setError(err.message || 'Gagal memperbarui profil.');
@@ -111,7 +113,7 @@ export default function WargaProfil() {
           <div className="dashboard-card p-4">
             <div className="d-flex align-items-center gap-3 mb-4">
               <div className="position-relative">
-                <span className="profile-avatar">{avatar ? <img src={avatar} alt="Foto profil" /> : avatarInitial(user.name)}</span>
+                <span className="profile-avatar">{avatar ? <PrivateImg src={avatar} alt="Foto profil" /> : avatarInitial(user.name)}</span>
                 <label className="profile-avatar-edit" title="Ganti foto profil">
                   <AppIcon name="camera" size={14} />
                   {/* Not className="d-none": a display:none input is not focusable,

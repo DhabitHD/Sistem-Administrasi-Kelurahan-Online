@@ -5,6 +5,20 @@ import StatusBadge from '../../components/common/StatusBadge.jsx';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import { AttachmentList } from '../../services/files.jsx';
 import AppModal from '../../components/common/AppModal.jsx';
+import PrivateImg, { usePrivateUrl } from '../../components/common/PrivateImg.jsx';
+
+function KtpView({ src }) {
+  const { url } = usePrivateUrl(src);
+  if (!url) return null;
+  return (
+    <div className="mt-3">
+      <strong className="d-block small mb-2"><AppIcon name="credit-card-2-front" size={14} className="me-1 text-brand" />Foto KTP</strong>
+      <a href={url} target="_blank" rel="noreferrer">
+        <PrivateImg src={src} alt="Foto KTP pengaju" loading="lazy" className="rounded" style={{ width: 96, height: 72, objectFit: 'cover' }} />
+      </a>
+    </div>
+  );
+}
 
 const statuses = ['DIAJUKAN', 'IN_PROGRESS', 'SIAP_DIAMBIL', 'CLOSED', 'DITOLAK'];
 const waLink = (wa) => (wa ? `https://wa.me/${String(wa).replace(/^0/, '62')}` : null);
@@ -182,14 +196,7 @@ export default function AdminSurat() {
               </table>
             </div>
 
-            {detail.ktp && (
-              <div className="mt-3">
-                <strong className="d-block small mb-2"><AppIcon name="credit-card-2-front" size={14} className="me-1 text-brand" />Foto KTP</strong>
-                <a href={detail.ktp} target="_blank" rel="noreferrer">
-                  <img src={detail.ktp} alt="Foto KTP pengaju" loading="lazy" className="rounded" style={{ width: 96, height: 72, objectFit: 'cover' }} />
-                </a>
-              </div>
-            )}
+            {detail.ktp && <KtpView src={detail.ktp} />}
 
             <AttachmentList files={detail.attachments} title="Lampiran" />
 

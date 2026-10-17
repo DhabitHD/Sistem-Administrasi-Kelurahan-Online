@@ -123,8 +123,7 @@ export default function PublicFooter() {
               </div>
               <div className="footer-contact mt-3">
                 <p><AppIcon name="geo-alt" /><span>Jl. Raya Betet Bawang 76, Kota Kediri, Jawa Timur</span></p>
-              <p><AppIcon name="envelope" /><span>KelurahanBetet@go.id</span></p>
-                <p><AppIcon name="telephone" /><span>(0354) 682955</span></p>
+              <p><AppIcon name="envelope" /><span>kelurahanbetet176@gmail.com</span></p>
                 <p><AppIcon name="clock" /><span>Senin–Kamis 08.00–15.00 WIB · Jumat 07.00–14.00 WIB</span></p>
               </div>
               <div className="footer-socials" aria-label="Media sosial">

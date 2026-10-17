@@ -4,7 +4,7 @@ import { uploadDataUrl } from '../../services/store.js';
 import AppIcon from '../../components/common/AppIcon.jsx';
 import AppAlert from '../../components/common/AppAlert.jsx';
 
-const fallback = { nama_lurah: '', foto_lurah: '', struktur_image: '', struktur_desc: '', visi: '', misi: '', sambutan: '', kontak_alamat: '', kontak_telp: '', kontak_email: '', kontak_jam: '' };
+const fallback = { nama_lurah: '', foto_lurah: '', struktur_image: '', struktur_desc: '', visi: '', misi: '', sambutan: '', kontak_alamat: '', kontak_email: '', kontak_jam: '' };
 
 export default function AdminProfil() {
   const profil = useProfil();
@@ -24,7 +24,6 @@ export default function AdminProfil() {
         misi: Array.isArray(profil.misi) ? profil.misi.join('\n') : (profil.misi || ''),
         sambutan: Array.isArray(profil.sambutan) ? profil.sambutan.join('\n') : (profil.sambutan || ''),
         kontak_alamat: profil.kontak_alamat || '',
-        kontak_telp: profil.kontak_telp || '',
         kontak_email: profil.kontak_email || '',
         kontak_jam: profil.kontak_jam || '',
       });
@@ -68,7 +67,6 @@ export default function AdminProfil() {
       misi: misiArr.length ? misiArr : null,
       sambutan: sambutanArr.length ? sambutanArr : null,
       kontak_alamat: form.kontak_alamat.trim() || null,
-      kontak_telp: form.kontak_telp.trim() || null,
       kontak_email: form.kontak_email.trim() || null,
       kontak_jam: form.kontak_jam.trim() || null,
     };
@@ -133,10 +131,6 @@ export default function AdminProfil() {
                 <div className="col-md-6">
                   <label className="form-label fw-semibold" htmlFor="p-ca">Kontak — Alamat</label>
                   <input id="p-ca" className="form-control" value={form.kontak_alamat} onChange={(e) => setForm({ ...form, kontak_alamat: e.target.value })} />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fw-semibold" htmlFor="p-ct">Kontak — Telepon</label>
-                  <input id="p-ct" className="form-control" value={form.kontak_telp} onChange={(e) => setForm({ ...form, kontak_telp: e.target.value })} />
                 </div>
                 <div className="col-md-6">
                   <label className="form-label fw-semibold" htmlFor="p-ce">Kontak — Email</label>

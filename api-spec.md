@@ -152,9 +152,12 @@ Administrasi menutup pengaduan langsung: simpan `laporan`/`laporan_foto`/`lapora
 ## 5. Upload
 
 ### POST /api/upload
-Multipart: `file` (gambar jpeg/png/jpg/gif/webp, dokumen pdf/doc/docx, atau video mp4/webm/mov; max 50MB server; client mewajibkan 500KB utk KTP/avatar).
-Response `201 { data: { path } }`, path = **URL absolut** `{APP_URL}/storage/uploads/<nama>` (disaji via route `web.php` `/storage/uploads/{file}`).
-Validasi: ekstensi dari isi file (`guessExtension`). File disimpan `storage/app/public/uploads/{prefix}_{timestamp}_{uniq}.{ext}` (prefix = user-id login, `anon` saat belum login — dipakai register utk foto KTP).
+Multipart: `file` (gambar jpeg/png/jpg/gif/webp, dokumen pdf/doc/docx; max 10MB server; client mewajibkan 500KB utk KTP/avatar).
+Response `201 { data: { path } }`, path relatif `/storage/uploads/<nama>` (disk publik — untuk foto non-identitas: petugas, berita, lampiran).
+Validasi: ekstensi dari isi file (`guessExtension`). File disimpan `storage/app/public/uploads/{prefix}_{timestamp}_{uniq}.{ext}`.
+
+### GET /api/files/{path} (auth)
+Menyajikan berkas identitas privat (`private/uploads/...`: KTP & avatar warga, disk non-publik). Hanya pemilik atau admin (`403` selain itu, `404` bila tak ada/tak valid). KTP register & avatar profil warga otomatis tersimpan privat; migrasi file lama: `php artisan files:migrate-private`.
 
 ---
 
