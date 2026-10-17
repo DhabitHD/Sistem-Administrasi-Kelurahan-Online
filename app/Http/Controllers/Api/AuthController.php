@@ -9,7 +9,6 @@ use App\Services\Notifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -53,9 +52,7 @@ class AuthController extends Controller
         // (bukan insert baru) agar tak menabrak unique index nik/email.
         $revived = $byNik ?? $byEmail;
         if ($revived) {
-            if ($revived->ktp && str_starts_with($revived->ktp, '/storage/uploads/')) {
-                Storage::disk('public')->delete(ltrim(substr($revived->ktp, strlen('/storage/')), '/'));
-            }
+            \App\Support\PrivateFile::delete($revived->ktp);
             $revived->tokens()->delete();
             $revived->update([
                 'name' => $data['nama'],
@@ -121,25 +118,27 @@ class AuthController extends Controller
 
         $token = $user->createToken(Str::slug($user->name).'-token')->plainTextToken;
 
+        /* Token menumpuk tiap login (sesi perangkat lain tak pernah dicabut).
+           Buang yang kedaluwarsa + sisakan 5 terbaru agar tabel tidak tumbuh
+           tanpa batas; perangkat lama yang disisihkan wajib login ulang. */
+        $user->tokens()->whereNotNull('expires_at')->where('expires_at', '<', now())->delete();
+        $keep = $user->tokens()->orderByDesc('id')->take(5)->pluck('id');
+        $user->tokens()->whereNotIn('id', $keep)->delete();
+
         return response()->json(['data' => ['token' => $token, 'user' => $this->userPayload($user)]]);
     }
 
     private function storeDataUrl(string $dataUrl): ?string
     {
-        if (!preg_match('#^data:image/(jpeg|png|webp);base64,#', $dataUrl, $m)) {
-            throw ValidationException::withMessages(['ktp' => 'File KTP harus berupa gambar (jpeg/png/webp).']);
+        try {
+            return \App\Support\PrivateFile::storeDataUrl($dataUrl);
+        } catch (ValidationException $e) {
+            // Pesan lama memakai key `ktp` agar form register menampilkan
+            // error di tempat yang sama seperti sebelumnya.
+            throw ValidationException::withMessages([
+                'ktp' => $e->errors()['file'][0] ?? 'File KTP tidak valid.',
+            ]);
         }
-        $bin = base64_decode(substr($dataUrl, (int) strpos($dataUrl, ',') + 1), true);
-        if ($bin === false || $bin === '' || strlen($bin) > 500 * 1024) {
-            throw ValidationException::withMessages(['ktp' => 'File KTP tidak valid atau melebihi 500 KB.']);
-        }
-        $ext = $m[1] === 'jpeg' ? 'jpg' : $m[1];
-        $name = 'anon_'.time().'_'.uniqid().'.'.$ext;
-        Storage::disk('public')->put("uploads/{$name}", $bin);
-        // Relative path, not url(). The API and the SPA are served from different
-        // origins in dev, so an absolute URL is a cross-origin request that the CSP
-        // img-src directive blocks, and it is not portable across environments.
-        return '/storage/uploads/'.$name;
     }
 
     public function logout(Request $request): JsonResponse

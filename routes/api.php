@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AdminContentController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FileController;
 use App\Http\Controllers\Api\HeroController;
 use App\Http\Controllers\Api\ProfilController;
 use App\Http\Controllers\Api\PublicController;
@@ -44,6 +45,8 @@ Route::post('tugas/{token}/laporan', [TugasController::class, 'store'])->middlew
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('upload', [UploadController::class, 'store'])->middleware('throttle:30,1');
+    /* Berkas identitas privat (KTP/avatar warga). Path dibatasi di controller. */
+    Route::get('files/{path}', [FileController::class, 'show'])->where('path', '.*');
 
     Route::get('pengaduan', [WargaController::class, 'complaintsIndex']);
     Route::post('pengaduan', [WargaController::class, 'complaintsStore'])->middleware('throttle:20,1');

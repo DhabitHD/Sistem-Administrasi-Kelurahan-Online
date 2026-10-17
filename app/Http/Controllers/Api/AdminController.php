@@ -12,7 +12,6 @@ use App\Models\Visit;
 use App\Services\Notifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -173,10 +172,7 @@ class AdminController extends Controller
             return response()->json(['message' => 'Tidak bisa menghapus akun sendiri.'], 422);
         }
         foreach (['ktp', 'avatar'] as $field) {
-            $path = $user->{$field};
-            if ($path && str_starts_with($path, '/storage/uploads/')) {
-                Storage::disk('public')->delete(ltrim(substr($path, strlen('/storage/')), '/'));
-            }
+            \App\Support\PrivateFile::delete($user->{$field});
         }
         $user->tokens()->delete();
         $name = $user->name;

@@ -95,7 +95,7 @@ class DatabaseSeeder extends Seeder
                 ],
                 'kontak_alamat' => 'Jl. Raya Betet Bawang 76, Kota Kediri, Jawa Timur',
                 'kontak_telp' => '(0354) 682955',
-                'kontak_email' => 'diskominfo@kedirikota.go.id',
+                'kontak_email' => 'kelurahanbetet176@gmail.com',
                 'kontak_jam' => 'Senin–Kamis 08.00–15.00 WIB · Jumat 07.00–14.00 WIB',
             ]
         );

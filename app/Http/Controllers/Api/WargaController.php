@@ -182,11 +182,17 @@ class WargaController extends Controller
             'alamat' => 'required|string',
             'avatar' => 'nullable|string',
         ]);
+        $avatar = $data['avatar'] ?? null;
+        if ($avatar !== null && str_starts_with($avatar, 'data:')) {
+            // Avatar warga adalah data identitas: simpan privat, bukan via /upload publik.
+            $avatar = \App\Support\PrivateFile::storeDataUrl($avatar, 'avatar');
+            \App\Support\PrivateFile::delete($user->avatar);
+        }
         $user->update([
             'wa' => $data['wa'],
             'email' => $data['email'] ?? null,
             'alamat' => $data['alamat'],
-            ...(!empty($data['avatar']) ? ['avatar' => $data['avatar']] : []),
+            ...(!empty($avatar) ? ['avatar' => $avatar] : []),
         ]);
 
         return response()->json(['data' => AuthController::userPayload($user)]);
